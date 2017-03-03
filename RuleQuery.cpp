@@ -5,10 +5,12 @@
 namespace Spark
 {
     RuleQuery::RuleQuery(InputBuffer& input) : buffer(input), failure(false)
-    {}
+    {
+    }
 
     RuleQuery::RuleQuery(SearchBuffer& current) : buffer(current), failure(false)
-    {}
+    {
+    }
 
     void RuleQuery::Search(RuleToken token)
     {
@@ -76,7 +78,10 @@ namespace Spark
             }
 
             if (!query.Failed()) // It succeeded! End the search
+            {
+                buffer.AdvanceTo(query.buffer); // Advance our buffer to same position as sub query
                 return;
+            }
         }
 
         // Every option failed

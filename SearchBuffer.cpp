@@ -26,4 +26,9 @@ char Spark::SearchBuffer::Current() const
     return buffer.PeekAt(index);
 }
 
+void Spark::SearchBuffer::AdvanceTo(const SearchBuffer& other)
+{
+    index = other.index;
+}
+
 

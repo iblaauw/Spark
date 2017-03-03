@@ -17,6 +17,6 @@ namespace Spark
         bool IsDone() const;
         char Current() const;
 
-        SearchBuffer& operator=(SearchBuffer& other) = default;
+        void AdvanceTo(const SearchBuffer& other);
     };
 }
