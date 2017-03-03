@@ -3,3 +3,7 @@ parser
 build/
 
 input.txt
+
+*.swp
+*.o
+*.temp

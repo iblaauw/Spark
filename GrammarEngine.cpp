@@ -2,8 +2,8 @@
 
 #include <sstream>
 
-//#include "RuleBuilder.h"
 #include "RuleTraverser.h"
+#include "Exceptions.h"
 
 Spark::GrammarEngine::GrammarEngine(std::istream& input) : buffer(input)
 {
@@ -12,14 +12,6 @@ Spark::GrammarEngine::GrammarEngine(std::istream& input) : buffer(input)
 
 void Spark::GrammarEngine::Start(RuleFunc func)
 {
-    /*
-    RuleBuilder builder(buffer, path);
-
-    path.Enter();
-    func(builder);
-    path.Exit();
-    */
-
     RuleToken token;
     token.Set(func);
 

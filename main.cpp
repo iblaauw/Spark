@@ -33,23 +33,24 @@ void Expression(Spark::IRuleBuilder& builder)
 
 void Program(Spark::IRuleBuilder& builder)
 {
+    builder.Add("blah ");
     builder.Add(Expression, '\n');
 }
 
-void Hello(Spark::IRuleBuilder& builder)
-{
-    builder.Add("hello");
-}
-
-void World(Spark::IRuleBuilder& builder)
-{
-    builder.Add("world");
-}
-
-void HelloWorld(Spark::IRuleBuilder& builder)
-{
-    builder.Add(Hello, ' ', World, '\n');
-}
+//void Hello(Spark::IRuleBuilder& builder)
+//{
+//    builder.Add("hello");
+//}
+//
+//void World(Spark::IRuleBuilder& builder)
+//{
+//    builder.Add("world");
+//}
+//
+//void HelloWorld(Spark::IRuleBuilder& builder)
+//{
+//    builder.Add(Hello, ' ', World, '\n');
+//}
 
 int main()
 {

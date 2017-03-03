@@ -1,24 +1,35 @@
 #pragma once
 
 #include "RuleFunc.h"
-#include "message_exception.h"
+#include "RuleToken.h"
 
 namespace Spark
 {
     class IRuleBuilder
     {
     public:
-        virtual void Add(RuleFunc func) = 0;
-        virtual void Add(char c) = 0;
-
         template <class T, class... Rest>
-        void Add(T val, Rest... rest)
+        inline void Add(T t, Rest... rest)
         {
-            Add(val);
+            RuleToken tok;
+            tok.Set(t);
+            AddInternal(tok);
+
             Add(rest...);
         }
 
-        inline void Add(std::string str)
+
+        template <class T, class... Rest>
+        inline void AddOption(T t, Rest... rest)
+        {
+            RuleToken tok;
+            tok.Set(t);
+            AddOptionInternal(tok);
+
+            AddOption(rest...);
+        }
+
+        void Add(std::string str)
         {
             for (char c : str)
             {
@@ -26,53 +37,19 @@ namespace Spark
             }
         }
 
-        inline void Add(const char* str)
+        void Add(const char* cstr)
         {
-            Add(std::string(str));
+            Add(std::string(cstr));
         }
 
-        template <class T, class... Rest>
-        inline void AddOption(T val, Rest... rest)
-        {
-            AddOptionInternal(val, rest...);
-            if (sizeof...(Rest) == 0)
-            {
-                EndOptionInternal();
-            }
-        }
+    private:
+        inline void Add() {} // End point
+        inline void AddOption() { EndOptionInternal(); } // End point
 
     protected:
-        virtual void AddOptionInternal(RuleFunc func) = 0;
-        virtual void AddOptionInternal(char c) = 0;
+        virtual void AddInternal(RuleToken tok) = 0;
+        virtual void AddOptionInternal(RuleToken tok) = 0;
         virtual void EndOptionInternal() = 0;
-
-        template <class T, class... Rest>
-        void AddOptionInternal(T val, Rest... rest)
-        {
-            AddOptionInternal(val);
-            AddOptionInternal(rest...);
-            if (sizeof...(Rest) == 1)
-            {
-                EndOptionInternal();
-            }
-        }
-
-        inline void AddOptionInternal(std::string str)
-        {
-            for (char c : str)
-            {
-                AddOptionInternal(c);
-            }
-        }
-
-        inline void AddOptionInternal(const char* cstr)
-        {
-            AddOptionInternal(std::string(cstr));
-        }
     };
 
-    // TODO: move to own file
-    DECL_EXCEPTION(ParseException);
-    DECL_EXCEPTION(SparkException);
-    DECL_EXCEPTION(SparkAssertionException);
 }

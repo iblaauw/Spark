@@ -1,38 +1,12 @@
 #include "InfoGatherer.h"
 
+#include "Exceptions.h"
+
 namespace Spark
 {
     InfoGatherer::InfoGatherer()
         : hasType(false), typeIsOption(false), newRow(true), tokens()
     {}
-
-    void InfoGatherer::Add(RuleFunc func)
-    {
-        DoAdd(func, false);
-    }
-
-    void InfoGatherer::Add(char c)
-    {
-        DoAdd(c, false);
-    }
-
-    void InfoGatherer::AddOptionInternal(RuleFunc func)
-    {
-        DoAdd(func, true);
-    }
-
-    void InfoGatherer::AddOptionInternal(char c)
-    {
-        DoAdd(c, true);
-    }
-
-    void InfoGatherer::EndOptionInternal()
-    {
-        if (!hasType || !typeIsOption)
-            throw SparkAssertionException("Internal Error: Empty option sequence!");
-
-        newRow = true;
-    }
 
     void InfoGatherer::Verify() const
     {
@@ -42,6 +16,32 @@ namespace Spark
         if (tokens.size() == 1 && typeIsOption)
             throw SparkException("The rule consists of a single 'AddOption' call. Use 'Add' instead for rules with only a single option.");
 
+    }
+
+    void InfoGatherer::AddInternal(RuleToken tok)
+    {
+        TypeGuard(false);
+
+        TryAddNewRow();
+
+        tokens.back().push_back(tok);
+    }
+
+    void InfoGatherer::AddOptionInternal(RuleToken tok)
+    {
+        TypeGuard(true);
+
+        TryAddNewRow();
+
+        tokens.back().push_back(tok);
+    }
+
+    void InfoGatherer::EndOptionInternal()
+    {
+        if (!hasType || !typeIsOption)
+            throw SparkAssertionException("Internal Error: Empty option sequence!");
+
+        newRow = true;
     }
 
     void InfoGatherer::TypeGuard(bool isOption)
@@ -66,5 +66,8 @@ namespace Spark
             newRow = false;
         }
     }
-}
+
+
+
+} // end namespace
 

@@ -2,14 +2,12 @@
 
 #include <functional>
 
-#include "IRuleBuilder.h"
+#include "Delegates.h"
 #include "message_exception.h"
 
 namespace Spark
 {
     DECL_EXCEPTION(RuleTokenException);
-
-    using RuleFuncWrapper = std::function<void(IRuleBuilder&)>;
 
     class RuleToken
     {

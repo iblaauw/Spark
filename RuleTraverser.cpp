@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "RuleQuery.h"
+#include "Exceptions.h"
 
 namespace Spark
 {
