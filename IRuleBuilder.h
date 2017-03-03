@@ -1,6 +1,5 @@
 #pragma once
 
-#include "RuleFunc.h"
 #include "RuleToken.h"
 
 namespace Spark
