@@ -1,6 +1,7 @@
 #include "RuleQuery.h"
 
 #include "InfoGatherer.h"
+#include "Exceptions.h"
 
 namespace Spark
 {
@@ -17,13 +18,16 @@ namespace Spark
         if (failure)
             return;
 
-        if (token.IsFunction())
+        switch (token.GetMode())
         {
-            HandleFunc(token.GetFunc());
-        }
-        else
-        {
-            HandleChar(token.GetChar());
+            case RuleToken::CHAR_MODE:
+                HandleChar(token.GetChar());
+                break;
+            case RuleToken::FUNC_MODE:
+                HandleFunc(token.GetFunc());
+                break;
+            default:
+                throw SparkAssertionException("UNREACHABLE");
         }
     }
 

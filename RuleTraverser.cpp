@@ -12,13 +12,16 @@ namespace Spark
 
     void RuleTraverser::Execute(RuleToken token)
     {
-        if (token.IsFunction())
+        switch (token.GetMode())
         {
-            ExecuteFunc(token.GetFunc());
-        }
-        else
-        {
-            HandleChar(token.GetChar());
+            case RuleToken::CHAR_MODE:
+                HandleChar(token.GetChar());
+                break;
+            case RuleToken::FUNC_MODE:
+                ExecuteFunc(token.GetFunc());
+                break;
+            default:
+                throw SparkAssertionException("UNREACHABLE");
         }
     }
 

@@ -29,19 +29,6 @@ namespace Spark
             AddOption(rest...);
         }
 
-        void Add(std::string str)
-        {
-            for (char c : str)
-            {
-                Add(c);
-            }
-        }
-
-        void Add(const char* cstr)
-        {
-            Add(std::string(cstr));
-        }
-
     private:
         inline void Add() {} // End point
         inline void AddOption() { EndOptionInternal(); } // End point

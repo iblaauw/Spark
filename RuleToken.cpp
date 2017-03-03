@@ -1,72 +1,49 @@
 #include "RuleToken.h"
 
+#include <sstream>
+
 using namespace Spark;
 
-RuleToken::RuleToken() : isFunc(false), isAssigned(false) {}
+RuleToken::RuleToken() : mode(CHAR_MODE), isAssigned(false) {}
 
 // Big 5
-RuleToken::RuleToken(const RuleToken& other) : isFunc(other.isFunc), isAssigned(other.isAssigned)
+RuleToken::RuleToken(const RuleToken& other) : mode(other.mode), isAssigned(other.isAssigned)
 {
     if (!other.isAssigned)
         return;
 
-    if (other.isFunc)
-    {
-        new(&funcVal) RuleFuncWrapper(other.funcVal);
-    }
-    else
-    {
-        charVal = other.charVal;
-    }
+    DoNewAssign(other);
 }
 
-RuleToken::RuleToken(RuleToken&& other) : isFunc(other.isFunc), isAssigned(other.isAssigned)
+RuleToken::RuleToken(RuleToken&& other) : mode(other.mode), isAssigned(other.isAssigned)
 {
     if (!other.isAssigned)
         return;
 
-    if (other.isFunc)
-    {
-        new(&funcVal) RuleFuncWrapper(std::move(other.funcVal));
-    }
-    else
-    {
-        charVal = other.charVal;
-    }
+    DoNewAssign(std::move(other));
 }
 
 RuleToken& RuleToken::operator=(const RuleToken& other)
 {
     if (other.isAssigned)
     {
-        if (isFunc && other.isFunc)
+        if (isAssigned && mode == other.mode)
         {
-            funcVal = other.funcVal;
-        }
-        else if (isFunc && !other.isFunc)
-        {
-            funcVal.~RuleFuncWrapper();
-            charVal = other.charVal;
-        }
-        else if (!isFunc && other.isFunc)
-        {
-            new(&funcVal) RuleFuncWrapper(other.funcVal);
+            DoDirectAssign(other);
         }
         else
         {
-            charVal = other.charVal;
+            DestroyAll();
+            DoNewAssign(other);
         }
     }
     else
     {
-        if (isFunc)
-        {
-            funcVal.~RuleFuncWrapper();
-        }
+        DestroyAll();
     }
 
     isAssigned = other.isAssigned;
-    isFunc = other.isFunc;
+    mode = other.mode;
 
     return *this;
 }
@@ -75,44 +52,30 @@ RuleToken& RuleToken::operator=(RuleToken&& other)
 {
     if (other.isAssigned)
     {
-        if (isFunc && other.isFunc)
+        if (isAssigned && mode == other.mode)
         {
-            funcVal = std::move(other.funcVal);
-        }
-        else if (isFunc && !other.isFunc)
-        {
-            funcVal.~RuleFuncWrapper();
-            charVal = other.charVal;
-        }
-        else if (!isFunc && other.isFunc)
-        {
-            new(&funcVal) RuleFuncWrapper(std::move(other.funcVal));
+            DoDirectAssign(std::move(other));
         }
         else
         {
-            charVal = other.charVal;
+            DestroyAll();
+            DoNewAssign(std::move(other));
         }
     }
     else
     {
-        if (isFunc)
-        {
-            funcVal.~RuleFuncWrapper();
-        }
+        DestroyAll();
     }
 
     isAssigned = other.isAssigned;
-    isFunc = other.isFunc;
+    mode = other.mode;
 
     return *this;
 }
 
 RuleToken::~RuleToken()
 {
-    if (isFunc)
-    {
-        funcVal.~RuleFuncWrapper();
-    }
+    DestroyAll();
 }
 
 void RuleToken::Set(char c)
@@ -121,8 +84,19 @@ void RuleToken::Set(char c)
         throw RuleTokenException("Token already initialized.");
 
     isAssigned = true;
-    isFunc = false;
+    mode = CHAR_MODE;
     charVal = c;
+}
+
+void RuleToken::Set(std::string str)
+{
+    if (isAssigned)
+        throw RuleTokenException("Token already initialized.");
+
+    isAssigned = true;
+    mode = STRING_MODE;
+    // placement new
+    new(&stringVal) std::string(str);
 }
 
 void RuleToken::Set(RuleFuncWrapper func)
@@ -131,7 +105,7 @@ void RuleToken::Set(RuleFuncWrapper func)
         throw RuleTokenException("Token already initialized.");
 
     isAssigned = true;
-    isFunc = true;
+    mode = FUNC_MODE;
     // placement new
     new(&funcVal) RuleFuncWrapper(func);
 }
@@ -141,10 +115,25 @@ char RuleToken::GetChar() const
     if (!isAssigned)
         throw RuleTokenException("Token not initialized");
 
-    if (isFunc)
-        throw RuleTokenException("Token is wrong type");
+    if (mode != CHAR_MODE)
+    {
+        std::stringstream ss;
+        ss << "Wrong type: Token is not a char. Token is " << mode;
+        throw RuleTokenException(ss.str());
+    }
 
     return charVal;
+}
+
+std::string RuleToken::GetString() const
+{
+    if (!isAssigned)
+        throw RuleTokenException("Token not initialized");
+
+    if (mode != STRING_MODE)
+        throw RuleTokenException("Wrong type: Token is not a string");
+
+    return stringVal;
 }
 
 RuleFuncWrapper RuleToken::GetFunc() const
@@ -152,10 +141,102 @@ RuleFuncWrapper RuleToken::GetFunc() const
     if (!isAssigned)
         throw RuleTokenException("Token not initialized");
 
-    if (!isFunc)
-        throw RuleTokenException("Token is wrong type");
+    if (mode != FUNC_MODE)
+        throw RuleTokenException("Wrong type: Token is not a func");
 
     return funcVal;
+}
+
+void RuleToken::DoDirectAssign(const RuleToken& other)
+{
+    switch (mode)
+    {
+        case CHAR_MODE:
+            charVal = other.charVal;
+            break;
+        case STRING_MODE:
+            stringVal = other.stringVal;
+            break;
+        case FUNC_MODE:
+            funcVal = other.funcVal;
+            break;
+        default:
+            throw RuleTokenException("UNREACHABLE");
+    }
+}
+
+void RuleToken::DoDirectAssign(RuleToken&& other)
+{
+    switch (mode)
+    {
+        case CHAR_MODE:
+            charVal = other.charVal;
+            break;
+        case STRING_MODE:
+            stringVal = std::move(other.stringVal);
+            break;
+        case FUNC_MODE:
+            funcVal = std::move(other.funcVal);
+            break;
+        default:
+            throw RuleTokenException("UNREACHABLE");
+    }
+}
+
+
+void RuleToken::DoNewAssign(const RuleToken& other)
+{
+    switch (other.mode)
+    {
+        case CHAR_MODE:
+            charVal = other.charVal;
+            break;
+        case STRING_MODE:
+            new(&stringVal) std::string(other.stringVal);
+            break;
+        case FUNC_MODE:
+            new(&funcVal) RuleFuncWrapper(other.funcVal);
+            break;
+        default:
+            throw RuleTokenException("UNREACHABLE");
+    }
+}
+
+void RuleToken::DoNewAssign(RuleToken&& other)
+{
+    switch (other.mode)
+    {
+        case CHAR_MODE:
+            charVal = other.charVal;
+            break;
+        case STRING_MODE:
+            new(&stringVal) std::string(std::move(other.stringVal));
+            break;
+        case FUNC_MODE:
+            new(&funcVal) RuleFuncWrapper(std::move(other.funcVal));
+            break;
+        default:
+            throw RuleTokenException("UNREACHABLE");
+    }
+}
+
+void RuleToken::DestroyAll()
+{
+    if (!isAssigned)
+        return;
+
+    switch (mode)
+    {
+        case STRING_MODE:
+            using std::string;
+            stringVal.~string();
+            break;
+        case FUNC_MODE:
+            funcVal.~RuleFuncWrapper();
+            break;
+        default:
+            break;
+    }
 }
 
 

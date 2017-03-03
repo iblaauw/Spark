@@ -11,16 +11,21 @@ namespace Spark
 
     class RuleToken
     {
+    public:
+        enum Mode { CHAR_MODE, STRING_MODE, FUNC_MODE };
     private:
         union
         {
             char charVal;
+            std::string stringVal;
             RuleFuncWrapper funcVal;
         };
-        bool isFunc;
+
+        Mode mode;
         bool isAssigned;
 
     public:
+
         RuleToken();
 
         // Big 5
@@ -32,7 +37,10 @@ namespace Spark
 
         // Setters
         void Set(char c);
+        void Set(std::string str);
         void Set(RuleFuncWrapper func);
+
+        inline void Set(const char* cstr) { Set(std::string(cstr)); }
 
         template <class T>
         void Set(T val)
@@ -41,14 +49,22 @@ namespace Spark
         }
 
         // Getters
-        inline bool IsFunction() const
+        inline Mode GetMode() const
         {
             if (!isAssigned)
                 throw RuleTokenException("Token is uninitialized.");
-            return isFunc;
+            return mode;
         }
 
         char GetChar() const;
+        std::string GetString() const;
         RuleFuncWrapper GetFunc() const;
+
+    private:
+        void DoDirectAssign(const RuleToken& other);
+        void DoDirectAssign(RuleToken&& other);
+        void DoNewAssign(const RuleToken& other);
+        void DoNewAssign(RuleToken&& other);
+        void DestroyAll();
     };
 }

@@ -33,8 +33,7 @@ void Expression(Spark::IRuleBuilder& builder)
 
 void Program(Spark::IRuleBuilder& builder)
 {
-    builder.Add("blah ");
-    builder.Add(Expression, '\n');
+    builder.Add("blah ", Expression, '\n');
 }
 
 //void Hello(Spark::IRuleBuilder& builder)
