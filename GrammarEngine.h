@@ -3,8 +3,7 @@
 #include <iostream>
 
 #include "InputBuffer.h"
-#include "RuleFunc.h"
-//#include "PathManager.h"
+#include "Delegates.h"
 
 namespace Spark
 {
@@ -12,9 +11,8 @@ namespace Spark
     {
     private:
         InputBuffer buffer;
-        //PathManager path;
     public:
         GrammarEngine(std::istream& input);
-        void Start(RuleFunc func);
+        void Start(RuleFuncWrapper func);
     };
 }

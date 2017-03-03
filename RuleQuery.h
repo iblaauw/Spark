@@ -21,6 +21,7 @@ namespace Spark
         RuleQuery(SearchBuffer& current);
 
         void HandleChar(char c);
+        void HandleString(std::string str);
         void HandleFunc(RuleFuncWrapper func);
 
         void HandleOptions(InfoGatherer& info);

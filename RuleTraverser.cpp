@@ -17,6 +17,9 @@ namespace Spark
             case RuleToken::CHAR_MODE:
                 HandleChar(token.GetChar());
                 break;
+            case RuleToken::STRING_MODE:
+                HandleString(token.GetString());
+                break;
             case RuleToken::FUNC_MODE:
                 ExecuteFunc(token.GetFunc());
                 break;
@@ -60,6 +63,14 @@ namespace Spark
             ss << std::endl;
             ss << "Unexpected char '" << next << "', expecting '" << c << "'.";
             throw ParseException(ss.str());
+        }
+    }
+
+    void RuleTraverser::HandleString(std::string str)
+    {
+        for (char c : str)
+        {
+            HandleChar(c);
         }
     }
 

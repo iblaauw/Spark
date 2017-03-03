@@ -19,6 +19,7 @@ namespace Spark
         void ExecuteFunc(RuleFuncWrapper func);
 
         void HandleChar(char c);
+        void HandleString(std::string str);
         void HandleOptions(InfoGatherer& gatherer);
         int FindValidOption(InfoGatherer& gatherer);
     };

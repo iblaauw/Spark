@@ -8,6 +8,7 @@ void Value(Spark::IRuleBuilder& builder)
 {
     builder.AddOption('A');
     builder.AddOption('B');
+    builder.AddOption([](Spark::IRuleBuilder& b) { b.Add('C'); });
 }
 
 void Operator(Spark::IRuleBuilder& builder)

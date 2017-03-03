@@ -10,7 +10,7 @@ Spark::GrammarEngine::GrammarEngine(std::istream& input) : buffer(input)
 
 }
 
-void Spark::GrammarEngine::Start(RuleFunc func)
+void Spark::GrammarEngine::Start(RuleFuncWrapper func)
 {
     RuleToken token;
     token.Set(func);

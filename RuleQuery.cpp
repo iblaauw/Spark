@@ -23,6 +23,9 @@ namespace Spark
             case RuleToken::CHAR_MODE:
                 HandleChar(token.GetChar());
                 break;
+            case RuleToken::STRING_MODE:
+                HandleString(token.GetString());
+                break;
             case RuleToken::FUNC_MODE:
                 HandleFunc(token.GetFunc());
                 break;
@@ -47,6 +50,17 @@ namespace Spark
         }
 
         buffer.Advance();
+    }
+
+    void RuleQuery::HandleString(std::string str)
+    {
+        for (char c : str)
+        {
+            HandleChar(c);
+
+            if (failure)
+                return;
+        }
     }
 
     void RuleQuery::HandleFunc(RuleFuncWrapper func)

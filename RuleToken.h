@@ -42,11 +42,11 @@ namespace Spark
 
         inline void Set(const char* cstr) { Set(std::string(cstr)); }
 
-        template <class T>
-        void Set(T val)
-        {
-            Set(RuleFuncWrapper(val));
-        }
+        //template <class T>
+        //void Set(T val)
+        //{
+        //    Set(RuleFuncWrapper(val));
+        //}
 
         // Getters
         inline Mode GetMode() const
