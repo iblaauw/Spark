@@ -17,31 +17,25 @@ namespace Spark
             Add(rest...);
         }
 
-
-        template <class T, class... Rest>
-        inline void AddOption(T t, Rest... rest)
+        inline void AddEmpty()
         {
-            RuleToken tok;
-            tok.Set(t);
-            AddOptionInternal(tok);
-
-            AddOption(rest...);
+            AddEmptyInternal();
         }
 
-        inline void AddEmptyOption()
-        {
-            AddEmptyOptionInternal();
-        }
+        //template <class T>
+        //void AddStringOption(T val)
+        //{
+        //    auto stringEnd = [&](IRuleBuilder& b) { b.AddStringOption(val); b.AddEmptyOption(); };
+        //    AddOption(val, stringEnd);
+        //}
 
     private:
-        inline void Add() {} // End point
-        inline void AddOption() { EndOptionInternal(); } // End point
+        inline void Add() { EndInternal(); } // End point
 
     protected:
         virtual void AddInternal(RuleToken tok) = 0;
-        virtual void AddOptionInternal(RuleToken tok) = 0;
-        virtual void EndOptionInternal() = 0;
-        virtual void AddEmptyOptionInternal() = 0;
+        virtual void EndInternal() = 0;
+        virtual void AddEmptyInternal() = 0;
     };
 
 }

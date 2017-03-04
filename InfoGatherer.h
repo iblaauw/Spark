@@ -10,16 +10,12 @@ namespace Spark
     class InfoGatherer : public IRuleBuilder
     {
     private:
-        bool hasType;
-        bool typeIsOption;
         bool newRow;
-
         std::vector<std::vector<RuleToken>> tokens;
 
     public:
         InfoGatherer();
 
-        inline bool IsOption() { return typeIsOption; }
         inline int NumOptions() { return tokens.size(); }
 
         inline std::vector<RuleToken>& Get(int index)
@@ -31,12 +27,10 @@ namespace Spark
 
     protected:
         virtual void AddInternal(RuleToken tok) override;
-        virtual void AddOptionInternal(RuleToken tok) override;
-        virtual void EndOptionInternal() override;
-        virtual void AddEmptyOptionInternal() override;
+        virtual void EndInternal() override;
+        virtual void AddEmptyInternal() override;
 
     private:
-        void TypeGuard(bool isOption);
         void TryAddNewRow();
     };
 }

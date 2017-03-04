@@ -38,14 +38,11 @@ namespace Spark
         func(gatherer);
         gatherer.Verify();
 
-        if (gatherer.IsOption())
+        if (gatherer.NumOptions() > 1)
         {
             HandleOptions(gatherer);
             return;
         }
-
-        if (gatherer.NumOptions() != 1)
-            throw SparkAssertionException("Multiple options for non-option rule.");
 
         for (RuleToken& tok : gatherer.Get(0))
         {

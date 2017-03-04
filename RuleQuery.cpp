@@ -73,7 +73,7 @@ namespace Spark
         func(info);
         info.Verify();
 
-        if (info.IsOption())
+        if (info.NumOptions() > 1)
         {
             HandleOptions(info);
         }

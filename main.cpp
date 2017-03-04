@@ -14,8 +14,8 @@ void Value(Spark::IRuleBuilder& builder);
 
 void ValueEnd(Spark::IRuleBuilder& builder)
 {
-    builder.AddOption(Value);
-    builder.AddEmptyOption();
+    builder.Add(Value);
+    builder.AddEmpty();
 }
 
 void Value(Spark::IRuleBuilder& builder)
@@ -23,12 +23,17 @@ void Value(Spark::IRuleBuilder& builder)
     builder.Add(Alpha, ValueEnd);
 }
 
+//void Value(Spark::IRuleBuilder& builder)
+//{
+//    builder.AddStringOption(Alpha);
+//}
+
 void Operator(Spark::IRuleBuilder& builder)
 {
-    builder.AddOption('+');
-    builder.AddOption('-');
-    builder.AddOption('*');
-    builder.AddOption('/');
+    builder.Add('+');
+    builder.Add('-');
+    builder.Add('*');
+    builder.Add('/');
 }
 
 void Expression(Spark::IRuleBuilder& builder);
@@ -40,8 +45,8 @@ void ExpressionEnd(Spark::IRuleBuilder& builder)
 
 void Expression(Spark::IRuleBuilder& builder)
 {
-    builder.AddOption(Value, ExpressionEnd);
-    builder.AddOption(Value);
+    builder.Add(Value, ExpressionEnd);
+    builder.Add(Value);
 }
 
 void Program(Spark::IRuleBuilder& builder)
