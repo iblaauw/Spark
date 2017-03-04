@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RuleToken.h"
+#include "Delegates.h"
 
 namespace Spark
 {
@@ -22,15 +23,28 @@ namespace Spark
             AddEmptyInternal();
         }
 
-        //template <class T>
-        //void AddStringOption(T val)
-        //{
-        //    auto stringEnd = [&](IRuleBuilder& b) { b.AddStringOption(val); b.AddEmptyOption(); };
-        //    AddOption(val, stringEnd);
-        //}
+        template <class T>
+        void AddString(T val)
+        {
+            auto rule = GenerateStringRule(val);
+            Add(rule);
+        }
 
     private:
         inline void Add() { EndInternal(); } // End point
+
+        template <class T>
+        RuleFuncWrapper GenerateStringRule(T& val)
+        {
+            auto end = [=](IRuleBuilder& b)
+            {
+                auto base = GenerateStringRule(val);
+                b.Add(base);
+                b.AddEmpty();
+            };
+            auto base = [=](IRuleBuilder& b) { b.Add(val, end); };
+            return base;
+        }
 
     protected:
         virtual void AddInternal(RuleToken tok) = 0;
