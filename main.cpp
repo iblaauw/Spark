@@ -4,11 +4,17 @@
 #include "GrammarEngine.h"
 #include "IRuleBuilder.h"
 
+bool Alpha(char c)
+{
+    return (c >= 'a' && c <= 'z') ||
+        (c >= 'A' && c <= 'Z');
+}
+
 void Value(Spark::IRuleBuilder& builder)
 {
-    builder.AddOption('A');
-    builder.AddOption('B');
-    builder.AddOption([](Spark::IRuleBuilder& b) { b.Add('C'); });
+    builder.AddOption(Alpha, Alpha, Alpha);
+    builder.AddOption(Alpha, Alpha);
+    builder.AddOption(Alpha);
 }
 
 void Operator(Spark::IRuleBuilder& builder)

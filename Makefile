@@ -10,7 +10,7 @@ LIBS :=
 SRC_EXT := cpp
 OBJ_EXT := o
 
-CPPFLAGS := --std=c++11 -Wall
+CPPFLAGS := --std=c++11 -Wall -g
 
 
 # BEGIN STUFF THAT SHOULDN'T BE CHANGED

@@ -12,13 +12,14 @@ namespace Spark
     class RuleToken
     {
     public:
-        enum Mode { CHAR_MODE, STRING_MODE, FUNC_MODE };
+        enum Mode { CHAR_MODE, STRING_MODE, FUNC_MODE, CHARSET_MODE };
     private:
         union
         {
             char charVal;
             std::string stringVal;
             RuleFuncWrapper funcVal;
+            CharsetPredicate charsetVal;
         };
 
         Mode mode;
@@ -39,14 +40,9 @@ namespace Spark
         void Set(char c);
         void Set(std::string str);
         void Set(RuleFuncWrapper func);
+        void Set(CharsetPredicate charset);
 
         inline void Set(const char* cstr) { Set(std::string(cstr)); }
-
-        //template <class T>
-        //void Set(T val)
-        //{
-        //    Set(RuleFuncWrapper(val));
-        //}
 
         // Getters
         inline Mode GetMode() const
@@ -59,6 +55,7 @@ namespace Spark
         char GetChar() const;
         std::string GetString() const;
         RuleFuncWrapper GetFunc() const;
+        CharsetPredicate GetCharset() const;
 
     private:
         void DoDirectAssign(const RuleToken& other);

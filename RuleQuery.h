@@ -23,6 +23,7 @@ namespace Spark
         void HandleChar(char c);
         void HandleString(std::string str);
         void HandleFunc(RuleFuncWrapper func);
+        void HandleCharset(CharsetPredicate charset);
 
         void HandleOptions(InfoGatherer& info);
 

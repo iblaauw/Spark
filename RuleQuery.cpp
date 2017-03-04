@@ -29,6 +29,9 @@ namespace Spark
             case RuleToken::FUNC_MODE:
                 HandleFunc(token.GetFunc());
                 break;
+            case RuleToken::CHARSET_MODE:
+                HandleCharset(token.GetCharset());
+                break;
             default:
                 throw SparkAssertionException("UNREACHABLE");
         }
@@ -81,6 +84,24 @@ namespace Spark
                 Search(tok);
             }
         }
+    }
+
+    void RuleQuery::HandleCharset(CharsetPredicate charset)
+    {
+        if (buffer.IsDone())
+        {
+            failure = true;
+            return;
+        }
+
+        char current = buffer.Current();
+        if (!charset(current))
+        {
+            failure = true;
+            return;
+        }
+
+        buffer.Advance();
     }
 
     void RuleQuery::HandleOptions(InfoGatherer& info)

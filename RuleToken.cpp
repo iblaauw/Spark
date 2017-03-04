@@ -110,6 +110,17 @@ void RuleToken::Set(RuleFuncWrapper func)
     new(&funcVal) RuleFuncWrapper(func);
 }
 
+void RuleToken::Set(CharsetPredicate charset)
+{
+    if (isAssigned)
+        throw RuleTokenException("Token already initialized.");
+
+    isAssigned = true;
+    mode = CHARSET_MODE;
+    // placement new
+    new(&charsetVal) CharsetPredicate(charset);
+}
+
 char RuleToken::GetChar() const
 {
     if (!isAssigned)
@@ -147,6 +158,17 @@ RuleFuncWrapper RuleToken::GetFunc() const
     return funcVal;
 }
 
+CharsetPredicate RuleToken::GetCharset() const
+{
+    if (!isAssigned)
+        throw RuleTokenException("Token not initialized");
+
+    if (mode != CHARSET_MODE)
+        throw RuleTokenException("Wrong type: Token is not a charset");
+
+    return charsetVal;
+}
+
 void RuleToken::DoDirectAssign(const RuleToken& other)
 {
     switch (mode)
@@ -159,6 +181,9 @@ void RuleToken::DoDirectAssign(const RuleToken& other)
             break;
         case FUNC_MODE:
             funcVal = other.funcVal;
+            break;
+        case CHARSET_MODE:
+            charsetVal = other.charsetVal;
             break;
         default:
             throw RuleTokenException("UNREACHABLE");
@@ -177,6 +202,9 @@ void RuleToken::DoDirectAssign(RuleToken&& other)
             break;
         case FUNC_MODE:
             funcVal = std::move(other.funcVal);
+            break;
+        case CHARSET_MODE:
+            charsetVal = std::move(other.charsetVal);
             break;
         default:
             throw RuleTokenException("UNREACHABLE");
@@ -197,6 +225,9 @@ void RuleToken::DoNewAssign(const RuleToken& other)
         case FUNC_MODE:
             new(&funcVal) RuleFuncWrapper(other.funcVal);
             break;
+        case CHARSET_MODE:
+            new(&charsetVal) CharsetPredicate(other.charsetVal);
+            break;
         default:
             throw RuleTokenException("UNREACHABLE");
     }
@@ -214,6 +245,9 @@ void RuleToken::DoNewAssign(RuleToken&& other)
             break;
         case FUNC_MODE:
             new(&funcVal) RuleFuncWrapper(std::move(other.funcVal));
+            break;
+        case CHARSET_MODE:
+            new(&charsetVal) CharsetPredicate(std::move(other.charsetVal));
             break;
         default:
             throw RuleTokenException("UNREACHABLE");
@@ -234,6 +268,8 @@ void RuleToken::DestroyAll()
         case FUNC_MODE:
             funcVal.~RuleFuncWrapper();
             break;
+        case CHARSET_MODE:
+            charsetVal.~CharsetPredicate();
         default:
             break;
     }

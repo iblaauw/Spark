@@ -20,7 +20,9 @@ namespace Spark
 
         void HandleChar(char c);
         void HandleString(std::string str);
+        void HandleCharset(CharsetPredicate charset);
         void HandleOptions(InfoGatherer& gatherer);
+
         int FindValidOption(InfoGatherer& gatherer);
     };
 }

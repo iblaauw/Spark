@@ -23,6 +23,9 @@ namespace Spark
             case RuleToken::FUNC_MODE:
                 ExecuteFunc(token.GetFunc());
                 break;
+            case RuleToken::CHARSET_MODE:
+                HandleCharset(token.GetCharset());
+                break;
             default:
                 throw SparkAssertionException("UNREACHABLE");
         }
@@ -85,6 +88,22 @@ namespace Spark
         for (RuleToken tok : gatherer.Get(index))
         {
             Execute(tok); // recurse
+        }
+    }
+
+    void RuleTraverser::HandleCharset(CharsetPredicate charset)
+    {
+        if (input.IsDone())
+            throw ParseException("Unexpected end of file");
+
+        char next = input.GetNext();
+        if (!charset(next))
+        {
+            std::stringstream ss;
+            ss << "At line " << input.LineNum() << ", character " << input.CharNum() << ":";
+            ss << std::endl;
+            ss << "Unexpected char '" << next << "'.";
+            throw ParseException(ss.str());
         }
     }
 
