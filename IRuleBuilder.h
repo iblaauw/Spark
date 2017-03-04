@@ -28,6 +28,11 @@ namespace Spark
             AddOption(rest...);
         }
 
+        inline void AddEmptyOption()
+        {
+            AddEmptyOptionInternal();
+        }
+
     private:
         inline void Add() {} // End point
         inline void AddOption() { EndOptionInternal(); } // End point
@@ -36,6 +41,7 @@ namespace Spark
         virtual void AddInternal(RuleToken tok) = 0;
         virtual void AddOptionInternal(RuleToken tok) = 0;
         virtual void EndOptionInternal() = 0;
+        virtual void AddEmptyOptionInternal() = 0;
     };
 
 }

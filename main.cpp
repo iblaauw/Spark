@@ -10,11 +10,17 @@ bool Alpha(char c)
         (c >= 'A' && c <= 'Z');
 }
 
+void Value(Spark::IRuleBuilder& builder);
+
+void ValueEnd(Spark::IRuleBuilder& builder)
+{
+    builder.AddOption(Value);
+    builder.AddEmptyOption();
+}
+
 void Value(Spark::IRuleBuilder& builder)
 {
-    builder.AddOption(Alpha, Alpha, Alpha);
-    builder.AddOption(Alpha, Alpha);
-    builder.AddOption(Alpha);
+    builder.Add(Alpha, ValueEnd);
 }
 
 void Operator(Spark::IRuleBuilder& builder)

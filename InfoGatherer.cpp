@@ -44,6 +44,19 @@ namespace Spark
         newRow = true;
     }
 
+    void InfoGatherer::AddEmptyOptionInternal()
+    {
+        // Just generate an empty row
+        TypeGuard(true);
+
+        if (!newRow)
+            throw SparkAssertionException("Empty string inserted into an option sequence.");
+
+        TryAddNewRow();
+
+        newRow = true;
+    }
+
     void InfoGatherer::TypeGuard(bool isOption)
     {
         if (hasType)

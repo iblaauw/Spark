@@ -33,6 +33,7 @@ namespace Spark
         virtual void AddInternal(RuleToken tok) override;
         virtual void AddOptionInternal(RuleToken tok) override;
         virtual void EndOptionInternal() override;
+        virtual void AddEmptyOptionInternal() override;
 
     private:
         void TypeGuard(bool isOption);
