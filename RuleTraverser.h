@@ -3,6 +3,7 @@
 #include "InputBuffer.h"
 #include "RuleToken.h"
 #include "InfoGatherer.h"
+#include "Node.h"
 
 namespace Spark
 {
@@ -13,16 +14,17 @@ namespace Spark
     public:
         RuleTraverser(InputBuffer& input);
 
-        void Execute(RuleToken token);
+        NodePtr Execute(RuleToken token);
 
     private:
-        void ExecuteFunc(RuleFuncWrapper func);
+        NodePtr ExecuteFunc(RuleFuncWrapper func);
 
-        void HandleChar(char c);
-        void HandleString(std::string str);
-        void HandleCharset(CharsetPredicate charset);
-        void HandleOptions(InfoGatherer& gatherer);
+        NodePtr HandleChar(char c);
+        NodePtr HandleString(std::string str);
+        NodePtr HandleCharset(CharsetPredicate charset);
+        NodePtr HandleOptions(InfoGatherer& gatherer);
 
         int FindValidOption(InfoGatherer& gatherer);
+        void DoHandleChar(char c);
     };
 }

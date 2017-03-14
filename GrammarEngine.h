@@ -4,6 +4,7 @@
 
 #include "InputBuffer.h"
 #include "Delegates.h"
+#include "Node.h"
 
 namespace Spark
 {
@@ -13,6 +14,6 @@ namespace Spark
         InputBuffer buffer;
     public:
         GrammarEngine(std::istream& input);
-        void Start(RuleFuncWrapper func);
+        NodePtr Start(RuleFuncWrapper func);
     };
 }

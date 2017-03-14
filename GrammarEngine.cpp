@@ -10,13 +10,13 @@ Spark::GrammarEngine::GrammarEngine(std::istream& input) : buffer(input)
 
 }
 
-void Spark::GrammarEngine::Start(RuleFuncWrapper func)
+Spark::NodePtr Spark::GrammarEngine::Start(RuleFuncWrapper func)
 {
     RuleToken token;
     token.Set(func);
 
     RuleTraverser traverser(buffer);
-    traverser.Execute(token);
+    NodePtr tree = traverser.Execute(token);
 
     if (!buffer.IsDone())
     {
@@ -29,6 +29,7 @@ void Spark::GrammarEngine::Start(RuleFuncWrapper func)
     else
     {
         std::cout << "Success!" << std::endl;
+        return tree;
     }
 }
 

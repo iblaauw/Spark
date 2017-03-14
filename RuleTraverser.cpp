@@ -10,28 +10,30 @@ namespace Spark
     RuleTraverser::RuleTraverser(InputBuffer& input) : input(input)
     {}
 
-    void RuleTraverser::Execute(RuleToken token)
+    NodePtr RuleTraverser::Execute(RuleToken token)
     {
         switch (token.GetMode())
         {
             case RuleToken::CHAR_MODE:
-                HandleChar(token.GetChar());
+                return HandleChar(token.GetChar());
                 break;
             case RuleToken::STRING_MODE:
-                HandleString(token.GetString());
+                return HandleString(token.GetString());
                 break;
             case RuleToken::FUNC_MODE:
-                ExecuteFunc(token.GetFunc());
+                return ExecuteFunc(token.GetFunc());
                 break;
             case RuleToken::CHARSET_MODE:
-                HandleCharset(token.GetCharset());
+                return HandleCharset(token.GetCharset());
                 break;
             default:
                 throw SparkAssertionException("UNREACHABLE");
         }
+
+        throw SparkAssertionException("UNREACHABLE");
     }
 
-    void RuleTraverser::ExecuteFunc(RuleFuncWrapper func)
+    NodePtr RuleTraverser::ExecuteFunc(RuleFuncWrapper func)
     {
         // Gather data
         InfoGatherer gatherer;
@@ -40,41 +42,39 @@ namespace Spark
 
         if (gatherer.NumOptions() > 1)
         {
-            HandleOptions(gatherer);
-            return;
+            return HandleOptions(gatherer);
         }
 
+        std::vector<NodePtr> nodes;
         for (RuleToken& tok : gatherer.Get(0))
         {
-            Execute(tok); // recurse
+            NodePtr n = Execute(tok); // recurse
+            nodes.push_back(n);
         }
+
+        return std::make_shared<Node>(nodes);
     }
 
-    void RuleTraverser::HandleChar(char c)
+    NodePtr RuleTraverser::HandleChar(char c)
     {
-        if (input.IsDone())
-            throw ParseException("Unexpected end of file");
+        DoHandleChar(c);
 
-        char next = input.GetNext();
-        if (next != c)
-        {
-            std::stringstream ss;
-            ss << "At line " << input.LineNum() << ", character " << input.CharNum() << ":";
-            ss << std::endl;
-            ss << "Unexpected char '" << next << "', expecting '" << c << "'.";
-            throw ParseException(ss.str());
-        }
+        auto node = std::make_shared<CharNode>(c);
+        return AsNode(node);
     }
 
-    void RuleTraverser::HandleString(std::string str)
+    NodePtr RuleTraverser::HandleString(std::string str)
     {
         for (char c : str)
         {
-            HandleChar(c);
+            DoHandleChar(c);
         }
+
+        auto node = std::make_shared<StringNode>(str);
+        return AsNode(node);
     }
 
-    void RuleTraverser::HandleOptions(InfoGatherer& gatherer)
+    NodePtr RuleTraverser::HandleOptions(InfoGatherer& gatherer)
     {
         int index = FindValidOption(gatherer);
         if (index == -1)
@@ -82,13 +82,17 @@ namespace Spark
 
         // TODO: dispose gatherer here to free up memory
         // TODO: make a replayer to speed this up (currently will traverse bottom an exponential # times)
+        std::vector<NodePtr> nodes;
         for (RuleToken tok : gatherer.Get(index))
         {
-            Execute(tok); // recurse
+            NodePtr n = Execute(tok); // recurse
+            nodes.push_back(n);
         }
+
+        return std::make_shared<Node>(nodes);
     }
 
-    void RuleTraverser::HandleCharset(CharsetPredicate charset)
+    NodePtr RuleTraverser::HandleCharset(CharsetPredicate charset)
     {
         if (input.IsDone())
             throw ParseException("Unexpected end of file");
@@ -102,6 +106,9 @@ namespace Spark
             ss << "Unexpected char '" << next << "'.";
             throw ParseException(ss.str());
         }
+
+        auto node = std::make_shared<CharNode>(next);
+        return AsNode(node);
     }
 
     int RuleTraverser::FindValidOption(InfoGatherer& gatherer)
@@ -120,4 +127,22 @@ namespace Spark
 
         return -1;
     }
+
+    void RuleTraverser::DoHandleChar(char c)
+    {
+        if (input.IsDone())
+            throw ParseException("Unexpected end of file");
+
+        char next = input.GetNext();
+        if (next != c)
+        {
+            std::stringstream ss;
+            ss << "At line " << input.LineNum() << ", character " << input.CharNum() << ":";
+            ss << std::endl;
+            ss << "Unexpected char '" << next << "', expecting '" << c << "'.";
+            throw ParseException(ss.str());
+        }
+    }
+
+
 }
