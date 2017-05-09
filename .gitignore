@@ -3,6 +3,7 @@ parser
 build/
 
 input.txt
+out.txt
 
 *.swp
 *.o

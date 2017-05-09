@@ -12,16 +12,25 @@ namespace Spark
     {
     protected:
         std::vector<NodePtr> children;
+        std::string name;
     public:
-        Node() : children() {}
-        Node(std::initializer_list<NodePtr> init) : children(init) {}
-        Node(const std::vector<NodePtr>& init) : children(init) {}
+        Node() : children(), name("<anon>") {}
+        Node(std::initializer_list<NodePtr> init) : children(init), name("<anon>") {}
+        Node(const std::vector<NodePtr>& init, std::string name) : children(init), name(name) {}
+        Node(const std::vector<NodePtr>& init) : children(init), name("<anon>") {}
 
         inline NodePtr& operator[](int index) { return children.at(index); }
         inline const NodePtr& operator[](int index) const { return children.at(index); }
 
         inline void Add(NodePtr ptr) { children.push_back(ptr); }
         inline void Remove(int index) { children.erase(children.begin() + index); }
+
+        inline int size() const { return children.size(); }
+
+        virtual std::string GetType() { return "Node"; }
+
+        std::string GetName() const { return name; }
+        void SetName(std::string newname) { name = newname; }
     };
 
     class CharNode : public Node
@@ -32,6 +41,8 @@ namespace Spark
         CharNode(char c) : c(c) {}
 
         inline char Get() { return c; }
+
+        std::string GetType() override { return "CharNode"; }
     };
 
     class StringNode : public Node
@@ -42,6 +53,8 @@ namespace Spark
         StringNode(std::string str) : str(str) {}
 
         inline std::string Get() { return str; }
+
+        std::string GetType() override { return "StringNode"; }
     };
 
     // TODO: move to utils file

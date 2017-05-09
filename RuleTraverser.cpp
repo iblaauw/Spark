@@ -45,14 +45,7 @@ namespace Spark
             return HandleOptions(gatherer);
         }
 
-        std::vector<NodePtr> nodes;
-        for (RuleToken& tok : gatherer.Get(0))
-        {
-            NodePtr n = Execute(tok); // recurse
-            nodes.push_back(n);
-        }
-
-        return std::make_shared<Node>(nodes);
+        return DoExecuteNodes(gatherer, 0);
     }
 
     NodePtr RuleTraverser::HandleChar(char c)
@@ -78,18 +71,9 @@ namespace Spark
     {
         int index = FindValidOption(gatherer);
         if (index == -1)
-            throw ParseException("Failed to match rule.");
+            throw ParseException("Failed to match rule " + gatherer.GetName());
 
-        // TODO: dispose gatherer here to free up memory
-        // TODO: make a replayer to speed this up (currently will traverse bottom an exponential # times)
-        std::vector<NodePtr> nodes;
-        for (RuleToken tok : gatherer.Get(index))
-        {
-            NodePtr n = Execute(tok); // recurse
-            nodes.push_back(n);
-        }
-
-        return std::make_shared<Node>(nodes);
+        return DoExecuteNodes(gatherer, index);
     }
 
     NodePtr RuleTraverser::HandleCharset(CharsetPredicate charset)
@@ -141,6 +125,67 @@ namespace Spark
             ss << std::endl;
             ss << "Unexpected char '" << next << "', expecting '" << c << "'.";
             throw ParseException(ss.str());
+        }
+    }
+
+    // Util func
+    void FlattenString(NodePtr root, std::stringstream& stream);
+
+    NodePtr RuleTraverser::DoExecuteNodes(InfoGatherer& gatherer, int index)
+    {
+        // TODO: dispose gatherer here to free up memory
+        // TODO: make a replayer to speed this up (currently will traverse bottom an exponential # times)
+
+        std::vector<NodePtr> nodes;
+        for (RuleToken tok : gatherer.Get(index))
+        {
+            NodePtr n = Execute(tok); // recurse
+            nodes.push_back(n);
+        }
+
+        if (gatherer.ShouldFlatten(index))
+        {
+            NodePtr root = std::make_shared<Node>(nodes);
+            std::stringstream stream;
+            FlattenString(root, stream);
+
+            auto node = std::make_shared<StringNode>(stream.str());
+            return AsNode(node);
+        }
+
+        std::string name = gatherer.GetName();
+
+        if (gatherer.HasCustomType())
+        {
+            NodePtr node = gatherer.Factory(nodes);
+            node->SetName(name);
+            return node;
+        }
+
+        return std::make_shared<Node>(nodes, name);
+    }
+
+    // Util func
+    void FlattenString(NodePtr root, std::stringstream& stream)
+    {
+        std::string type = root->GetType();
+        if (type == "CharNode")
+        {
+            auto ptr = std::static_pointer_cast<CharNode>(root);
+            stream << ptr->Get();
+            return;
+        }
+
+        if (type == "StringNode")
+        {
+            auto ptr = std::static_pointer_cast<StringNode>(root);
+            stream << ptr->Get();
+            return;
+        }
+
+        for (int i = 0; i < root->size(); i++)
+        {
+            FlattenString((*root)[i], stream);
         }
     }
 

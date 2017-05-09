@@ -26,5 +26,6 @@ namespace Spark
 
         int FindValidOption(InfoGatherer& gatherer);
         void DoHandleChar(char c);
+        NodePtr DoExecuteNodes(InfoGatherer& gatherer, int index);
     };
 }
