@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <set>
 
 #include "IRuleBuilder.h"
 #include "RuleToken.h"
@@ -19,6 +20,8 @@ namespace Spark
         std::vector<bool> flatten;
         std::string name;
         NodeFactory factory;
+
+        std::set<int> ignores;
 
     public:
         InfoGatherer();
@@ -41,12 +44,16 @@ namespace Spark
 
         NodePtr Factory(std::vector<NodePtr>& vec);
 
+        inline const std::set<int>& IgnoreValues() const { return ignores; }
+
+
     protected:
         virtual void AddInternal(RuleToken tok) override;
         virtual void EndInternal() override;
         virtual void AddEmptyInternal() override;
         virtual void RequestFlatten() override;
-        virtual void SetNodeTypeInternal(NodeFactory factory);
+        virtual void SetNodeTypeInternal(NodeFactory factory) override;
+        virtual void IgnoreInternal(int index) override;
 
     private:
         void TryAddNewRow();

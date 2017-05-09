@@ -55,6 +55,11 @@ namespace Spark
         hasCustomType = true;
     }
 
+    void InfoGatherer::IgnoreInternal(int index)
+    {
+        ignores.insert(index);
+    }
+
     void InfoGatherer::TryAddNewRow()
     {
         if (newRow)

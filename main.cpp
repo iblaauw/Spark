@@ -84,6 +84,8 @@ void ExpressionEnd(Spark::IRuleBuilder& builder)
 {
     Autoname(builder);
     builder.Add(' ', Operator, ' ', Expression);
+    builder.Ignore(0);
+    builder.Ignore(2);
 }
 
 void Expression(Spark::IRuleBuilder& builder)
@@ -97,6 +99,7 @@ void Program(Spark::IRuleBuilder& builder)
 {
     Autoname(builder);
     builder.Add(Expression, '\n');
+    builder.Ignore(1);
 }
 
 int main()

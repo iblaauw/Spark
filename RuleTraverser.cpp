@@ -136,21 +136,37 @@ namespace Spark
         // TODO: dispose gatherer here to free up memory
         // TODO: make a replayer to speed this up (currently will traverse bottom an exponential # times)
 
+        int count = 0;
+        const std::set<int>& ignores = gatherer.IgnoreValues();
+
         std::vector<NodePtr> nodes;
         for (RuleToken tok : gatherer.Get(index))
         {
             NodePtr n = Execute(tok); // recurse
-            nodes.push_back(n);
+
+            // If not found in ignore set
+            if (ignores.count(count) == 0)
+            {
+                nodes.push_back(n);
+            }
+
+            count++;
         }
+
 
         if (gatherer.ShouldFlatten(index))
         {
-            NodePtr root = std::make_shared<Node>(nodes);
-            std::stringstream stream;
-            FlattenString(root, stream);
+            std::vector<NodePtr> original = nodes;
+            nodes.clear();
 
-            auto node = std::make_shared<StringNode>(stream.str());
-            return AsNode(node);
+            for (NodePtr ptr : original)
+            {
+                std::stringstream stream;
+                FlattenString(ptr, stream);
+
+                auto node = std::make_shared<StringNode>(stream.str());
+                nodes.push_back(AsNode(node));
+            }
         }
 
         std::string name = gatherer.GetName();

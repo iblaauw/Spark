@@ -54,6 +54,11 @@ namespace Spark
             SetNodeTypeInternal(factory);
         }
 
+        void Ignore(int index)
+        {
+            IgnoreInternal(index);
+        }
+
     private:
         inline void Add() { EndInternal(); } // End point
 
@@ -76,6 +81,7 @@ namespace Spark
         virtual void AddEmptyInternal() = 0;
         virtual void RequestFlatten() = 0;
         virtual void SetNodeTypeInternal(std::function<NodePtr(std::vector<NodePtr>&)> factory) = 0;
+        virtual void IgnoreInternal(int index) = 0;
     };
 
 }
