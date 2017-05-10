@@ -139,6 +139,9 @@ class o2exeRule(Rule):
     def __init__(self):
         super().__init__('.o->exe')
         self.executable_name = 'a.out'
+        self.lib_dirs = []
+        self.libraries = []
+        self.flags = []
 
     def is_valid(self, fname):
         (_, ext) = os.path.splitext(fname)
@@ -149,13 +152,26 @@ class o2exeRule(Rule):
 
     def generate(self, depends, targets):
         targ = targets[0]
-        to_exec = [ 'g++' ] + depends + [ '-o', targ ]
+        to_exec = [ 'g++' ] + self.flags
+
+        if len(self.lib_dirs) > 0:
+            lib_dirs = [ '-L'+d for d in self.lib_dirs ]
+            to_exec = to_exec + lib_dirs
+
+        to_exec = to_exec + depends
+
+        if len(self.libraries) > 0:
+            libs = [ '-l'+l for l in self.libraries ]
+            to_exec = to_exec + libs
+
+        to_exec = to_exec + [ '-o', targ ]
         return [ to_exec ]
 
 class o2staticlibRule(Rule):
     def __init__(self):
         super().__init__('.o->.a')
         self.library_name = 'mylib.a'
+        self.lib_dir = None
         self.flags = []
 
     def is_valid(self, fname):
@@ -163,7 +179,12 @@ class o2staticlibRule(Rule):
         return ext == '.o'
 
     def generate_targets(self, fnames):
-        return [ self.library_name ]
+        if self.lib_dir is None:
+            libname = self.library_name
+        else:
+            libname = os.path.join(self.lib_dir, self.library_name)
+            ensure_dir_exists(self.lib_dir)
+        return [ libname ]
 
     def generate(self, depends, targets):
         targ = targets[0]
@@ -316,10 +337,18 @@ def main():
     cpp2o_rule.flags.append('-g')
 
     o2exe_rule.executable_name = "parser"
-    o2static_lib_rule.library_name = "spark.a"
+    o2static_lib_rule.library_name = "libspark.a"
+    o2static_lib_rule.lib_dir = "lib"
 
     libtarg = Target("lib", cpp_file_type, o2static_lib_rule)
     libtarg.Add('src/')
+
+    make_exe = o2exeRule()
+    with_lib_targ = Target("with_lib", cpp_file_type, make_exe)
+    with_lib_targ.Add('main.cpp')
+    make_exe.executable_name = "parser"
+    make_exe.lib_dirs.append("lib")
+    make_exe.libraries.append("spark")
 
     make()
 
