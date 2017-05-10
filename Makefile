@@ -2,8 +2,8 @@
 # just replace the following variables below
 TARGET := parser
 
-SOURCE_DIRS := .
-INCLUDE_DIRS := 
+SOURCE_DIRS := src
+INCLUDE_DIRS := include public
 
 LIBS := 
 

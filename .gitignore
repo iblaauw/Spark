@@ -8,3 +8,4 @@ out.txt
 *.swp
 *.o
 *.temp
+*.a
