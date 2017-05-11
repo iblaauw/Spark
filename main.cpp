@@ -3,6 +3,8 @@
 
 #include "GrammarEngine.h"
 #include "IRuleBuilder.h"
+#include "LLVMManager.h"
+#include "TypeConverter.h"
 
 class OperatorNode : public Spark::Node
 {
@@ -110,6 +112,25 @@ int main()
     auto tree = engine.Start(Program);
 
     PrintTree(tree);
+
+    {
+        Spark::LLVMManager::Init("my_module_yay");
+        Spark::LLVMManager& manager = Spark::LLVMManager::Instance();
+        std::cout << std::endl << "Begin module dump" << std::endl << std::endl;
+
+        //llvm::Type* intType = llvm::Type::getInt32Ty(Spark::LLVMManager::Context());
+        llvm::Type* intType = Spark::TypeConverter::Get<int>();
+        auto sig = manager.GetFuncSignature(intType, intType, intType);
+        auto fooFunc = manager.DeclareFunction("foo", sig);
+        llvm::IRBuilder<> builder = manager.Implement(fooFunc);
+
+        llvm::Constant* c = Spark::TypeConverter::Create<int>(5);
+        builder.CreateRet(c);
+
+        manager.Dump();
+        manager.Verify();
+    }
+
 
     return 0;
 }

@@ -2,7 +2,9 @@
 
 import os
 import sys
-import subprocess 
+import subprocess
+
+PIPE = subprocess.PIPE
 
 def modify_time(path):
     if path is None:
@@ -142,6 +144,7 @@ class o2exeRule(Rule):
         self.lib_dirs = []
         self.libraries = []
         self.flags = []
+        self.post_flags = []
 
     def is_valid(self, fname):
         (_, ext) = os.path.splitext(fname)
@@ -158,7 +161,7 @@ class o2exeRule(Rule):
             lib_dirs = [ '-L'+d for d in self.lib_dirs ]
             to_exec = to_exec + lib_dirs
 
-        to_exec = to_exec + depends
+        to_exec = to_exec + depends + self.post_flags
 
         if len(self.libraries) > 0:
             libs = [ '-l'+l for l in self.libraries ]
@@ -325,7 +328,31 @@ def make():
         target.run()
 
 
+
+### My stuff (not part of the library being built above)
+
+import shlex
+
+def call_llvm_config(*flags):
+    flags = list(flags)
+    pobj = subprocess.Popen(['llvm-config'] + flags, stdout=PIPE, universal_newlines=True)
+    (result, _) = pobj.communicate()
+    if pobj.returncode != 0:
+        print("Error calling llvm-config...")
+        return None
+
+    return shlex.split(result)
+
+
+
+
 def main():
+    llvm_compile_flags = call_llvm_config('--cxxflags')
+    llvm_link_flags = call_llvm_config('--ldflags', '--libs', 'core')
+
+    if llvm_compile_flags is None or llvm_link_flags is None:
+        return
+
     default_cpp_target.Add('src/')
     default_cpp_target.Add('main.cpp')
     set_default_target(default_cpp_target)
@@ -335,20 +362,27 @@ def main():
     cpp2o_rule.flags.append('-std=c++11')
     cpp2o_rule.flags.append('-Wall')
     cpp2o_rule.flags.append('-g')
+    cpp2o_rule.flags.extend(llvm_compile_flags)
+    cpp2o_rule.flags.append('-fexceptions') # because llvm is dumb
 
     o2exe_rule.executable_name = "parser"
-    o2static_lib_rule.library_name = "libspark.a"
-    o2static_lib_rule.lib_dir = "lib"
+    o2exe_rule.post_flags.extend(llvm_link_flags)
+    o2exe_rule.libraries.append('pthread')
+    o2exe_rule.libraries.append('dl')
 
-    libtarg = Target("lib", cpp_file_type, o2static_lib_rule)
-    libtarg.Add('src/')
 
-    make_exe = o2exeRule()
-    with_lib_targ = Target("with_lib", cpp_file_type, make_exe)
-    with_lib_targ.Add('main.cpp')
-    make_exe.executable_name = "parser"
-    make_exe.lib_dirs.append("lib")
-    make_exe.libraries.append("spark")
+    #o2static_lib_rule.library_name = "libspark.a"
+    #o2static_lib_rule.lib_dir = "lib"
+
+    #libtarg = Target("lib", cpp_file_type, o2static_lib_rule)
+    #libtarg.Add('src/')
+
+    #make_exe = o2exeRule()
+    #with_lib_targ = Target("with_lib", cpp_file_type, make_exe)
+    #with_lib_targ.Add('main.cpp')
+    #make_exe.executable_name = "parser"
+    #make_exe.lib_dirs.append("lib")
+    #make_exe.libraries.append("spark")
 
     make()
 
