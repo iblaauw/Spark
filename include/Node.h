@@ -27,7 +27,8 @@ namespace Spark
 
         inline int size() const { return children.size(); }
 
-        virtual std::string GetType() { return "Node"; }
+        virtual std::string GetType() const { return "Node"; }
+        virtual bool IsBuiltin() const { return true; }
 
         std::string GetName() const { return name; }
         void SetName(std::string newname) { name = newname; }
@@ -42,7 +43,7 @@ namespace Spark
 
         inline char Get() { return c; }
 
-        std::string GetType() override { return "CharNode"; }
+        std::string GetType() const override { return "CharNode"; }
     };
 
     class StringNode : public Node
@@ -54,7 +55,7 @@ namespace Spark
 
         inline std::string Get() { return str; }
 
-        std::string GetType() override { return "StringNode"; }
+        std::string GetType() const override { return "StringNode"; }
     };
 
     // TODO: move to utils file

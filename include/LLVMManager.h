@@ -9,6 +9,11 @@
 
 #include  "Utils.h"
 
+namespace llvm
+{
+class Target;
+}
+
 namespace Spark
 {
     class LLVMManager
@@ -38,8 +43,13 @@ namespace Spark
 
         llvm::IRBuilder<> Implement(llvm::Function* func);
 
+        void Compile(std::string outfile);
+
         void Dump() const;
         void Verify() const;
+
+    private:
+        //const llvm::Target* GetTarget();
     };
 }
 

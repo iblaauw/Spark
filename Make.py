@@ -329,7 +329,7 @@ def make():
 
 
 
-### My stuff (not part of the library being built above)
+#### My stuff (not part of the library being built above) ####
 
 import shlex
 
@@ -348,13 +348,15 @@ def call_llvm_config(*flags):
 
 def main():
     llvm_compile_flags = call_llvm_config('--cxxflags')
-    llvm_link_flags = call_llvm_config('--ldflags', '--libs', 'core')
+    llvm_link_flags = call_llvm_config('--ldflags', '--libs', 'core', 'bitwriter')
 
     if llvm_compile_flags is None or llvm_link_flags is None:
         return
 
     default_cpp_target.Add('src/')
     default_cpp_target.Add('main.cpp')
+    default_cpp_target.Add('Expressions.cpp')
+    default_cpp_target.Add('AST.cpp')
     set_default_target(default_cpp_target)
 
     cpp2o_rule.include_dirs.append('include')

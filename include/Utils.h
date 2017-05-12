@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 namespace Spark
 {
     template <class... Args>
@@ -30,9 +32,12 @@ namespace Spark
     std::vector<VType> Vectorify(Args... args)
     {
         std::vector<VType> vec;
-        //_Vectorify_impl(vec, args...);
         _Vec_impl2<Args...>::Do(vec, args...);
         return vec;
     }
+
+
+    class Node;
+    void PrintTree(std::shared_ptr<Node> root, int level = 0);
 }
 
