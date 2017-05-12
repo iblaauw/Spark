@@ -348,7 +348,7 @@ def call_llvm_config(*flags):
 
 def main():
     llvm_compile_flags = call_llvm_config('--cxxflags')
-    llvm_link_flags = call_llvm_config('--ldflags', '--libs', 'core', 'bitwriter')
+    llvm_link_flags = call_llvm_config('--ldflags', '--libs', 'all')
 
     if llvm_compile_flags is None or llvm_link_flags is None:
         return

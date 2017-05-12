@@ -46,7 +46,8 @@ int main()
     manager.Dump();
     manager.Verify();
 
-    manager.Compile("input.bc");
+    //manager.CompileBC("input.bc");
+    manager.Compile("input.o");
 
     //{
     //    Spark::LLVMManager::Init("my_module_yay");

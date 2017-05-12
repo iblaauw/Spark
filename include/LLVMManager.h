@@ -6,6 +6,8 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/IRBuilder.h"
+#include "llvm/PassManager.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
 
 #include  "Utils.h"
 
@@ -21,11 +23,17 @@ namespace Spark
     private:
         llvm::LLVMContext globalContext;
         llvm::Module* currentModule;
+
+        llvm::PassManager passManager;
+        llvm::FunctionPassManager* funcPassManager;
+
         static LLVMManager* instance;
 
         LLVMManager(std::string name);
     public:
-        static void Init(std::string name);
+        static llvm::PassManagerBuilder passBuilder;
+
+        static void Init(std::string name, int optimizationLevel = 2);
         static inline LLVMManager& Instance() { return *instance; }
         static inline llvm::LLVMContext& Context() { return instance->globalContext; }
 
@@ -43,13 +51,16 @@ namespace Spark
 
         llvm::IRBuilder<> Implement(llvm::Function* func);
 
+        void OptimizeFunction(llvm::Function* func);
+
+        void CompileBC(std::string outfile);
         void Compile(std::string outfile);
 
         void Dump() const;
         void Verify() const;
 
     private:
-        //const llvm::Target* GetTarget();
+        const llvm::Target* GetTarget();
     };
 }
 

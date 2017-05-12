@@ -4,29 +4,36 @@
 #include <iostream>
 
 #include "llvm/Analysis/Verifier.h"
-#include "llvm/PassManager.h"
-//#include "llvm/Support/TargetRegistry.h"
-//#include "llvm/Support/TargetSelect.h"
-//#include "llvm/Target/TargetMachine.h"
-//#include "llvm/Target/TargetOptions.h"
-//#include "llvm/Support/FileSystem.h"
-//#include "llvm/Support/Host.h"
-//#include "llvm/ADT/Optional.h"
+#include "llvm/Support/TargetRegistry.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/Target/TargetOptions.h"
+#include "llvm/Support/Host.h"
+#include "llvm/ADT/Optional.h"
 #include "llvm/Support/raw_ostream.h"
-//#include "llvm/Support/FormattedStream.h"
+#include "llvm/Support/FormattedStream.h"
 #include "llvm/Bitcode/ReaderWriter.h"
 
 namespace Spark
 {
     /*static*/ LLVMManager* LLVMManager::instance;
 
+    /*static*/ llvm::PassManagerBuilder LLVMManager::passBuilder;
+
     LLVMManager::LLVMManager(std::string name)
     {
         currentModule = new llvm::Module("my_module", globalContext);
+        funcPassManager = new llvm::FunctionPassManager(currentModule);
+
+        passBuilder.populateFunctionPassManager(*funcPassManager);
+        passBuilder.populateModulePassManager(passManager);
+
+        funcPassManager->doInitialization();
     }
 
-    /*static*/ void LLVMManager::Init(std::string name)
+    /*static*/ void LLVMManager::Init(std::string name, int optimizationLevel)
     {
+        passBuilder.OptLevel = optimizationLevel;
         instance = new LLVMManager(name);
     }
 
@@ -51,7 +58,12 @@ namespace Spark
         return builder;
     }
 
-    void LLVMManager::Compile(std::string outfile)
+    void LLVMManager::OptimizeFunction(llvm::Function* func)
+    {
+        funcPassManager->run(*func);
+    }
+
+    void LLVMManager::CompileBC(std::string outfile)
     {
         // Open the output file
         std::string error = "";
@@ -64,58 +76,65 @@ namespace Spark
             return;
         }
 
+        funcPassManager->doFinalization();
+
+        passManager.run(*currentModule);
+
         llvm::WriteBitcodeToFile(currentModule, out);
     }
 
-    /**** OLD compilation stuff ***/
-    //void LLVMManager::Compile(std::string outfile)
-    //{
-    //    std::string targetTriple = llvm::sys::getDefaultTargetTriple();
+    void LLVMManager::Compile(std::string outfile)
+    {
+        // Initialize the TargetRegistry for looking up targets
+        llvm::InitializeAllTargetInfos();
+        llvm::InitializeAllTargets();
+        llvm::InitializeAllTargetMCs();
+        llvm::InitializeAllAsmParsers();
+        llvm::InitializeAllAsmPrinters();
 
-    //    auto target = GetTarget();
-    //    if (!target)
-    //        return;
+        std::string targetTriple = llvm::sys::getDefaultTargetTriple();
 
-    //    // Create target machine
-    //    std::string cpuType = "generic";
-    //    std::string features = "";
+        auto target = GetTarget();
+        if (!target)
+            return;
 
-    //    llvm::TargetOptions options;
-    //    auto RM = llvm::Reloc::Default;
-    //    auto targetMachine = target->createTargetMachine(targetTriple, cpuType, features, options, RM);
+        // Create target machine
+        std::string cpuType = "generic";
+        std::string features = "";
+        llvm::TargetOptions options;
+        auto RM = llvm::Reloc::Default;
+        auto targetMachine = target->createTargetMachine(targetTriple, cpuType, features, options, RM);
 
+        // Update the module with target and layout info
+        currentModule->setTargetTriple(targetTriple);
 
-    //    // Update the module with target and layout info
-    //    currentModule->setTargetTriple(targetTriple);
+        auto* dataLayout = targetMachine->getDataLayout();
+        if (dataLayout != nullptr)
+        {
+            currentModule->setDataLayout(dataLayout->getStringRepresentation());
+        }
 
-    //    auto* dataLayout = targetMachine->getDataLayout();
-    //    if (dataLayout != nullptr)
-    //    {
-    //        currentModule->setDataLayout(dataLayout->getStringRepresentation());
-    //    }
+        // Open the output file
+        std::string error = "";
+        llvm::raw_fd_ostream out(outfile.c_str(), error, llvm::raw_fd_ostream::F_Binary);
 
-    //    // Open the output file
-    //    std::string error = "";
-    //    llvm::raw_fd_ostream out(outfile.c_str(), error, llvm::raw_fd_ostream::F_Binary | llvm::raw_fd_ostream::F_Excl);
+        if (error != "")
+        {
+            std::cerr << "Error opening file '" << outfile << "':" << std::endl;
+            std::cerr << error << std::endl;
+            return;
+        }
 
-    //    if (error != "")
-    //    {
-    //        std::cerr << "Error opening file '" << outfile << "':" << std::endl;
-    //        std::cerr << error << std::endl;
-    //        return;
-    //    }
+        llvm::formatted_raw_ostream out_format(out);
 
-    //    llvm::formatted_raw_ostream out_format(out);
+        // Set up passes
+        auto outfileType = llvm::TargetMachine::CGFT_ObjectFile;
+        targetMachine->addPassesToEmitFile(passManager, out_format, outfileType);
 
-    //    // Set up passes
-    //    llvm::PassManager passManager;
-    //    auto outfileType = llvm::TargetMachine::CGFT_ObjectFile;
-    //    targetMachine->addPassesToEmitFile(passManager, out_format, outfileType);
-
-    //    // Run!
-    //    passManager.run(*currentModule);
-
-    //}
+        // Run!
+        funcPassManager->doFinalization();
+        passManager.run(*currentModule);
+    }
 
     void LLVMManager::Dump() const
     {
@@ -127,33 +146,32 @@ namespace Spark
         llvm::verifyModule(*currentModule);
     }
 
-    //const llvm::Target* LLVMManager::GetTarget()
-    //{
-    //    std::string targetTriple = llvm::sys::getDefaultTargetTriple();
+    const llvm::Target* LLVMManager::GetTarget()
+    {
+        std::string targetTriple = llvm::sys::getDefaultTargetTriple();
 
-    //    std::string error;
-    //    auto target = llvm::TargetRegistry::lookupTarget(targetTriple, error);
+        std::string error;
+        auto target = llvm::TargetRegistry::lookupTarget(targetTriple, error);
 
-    //    if (target != nullptr)
-    //        return target;
+        if (target != nullptr)
+            return target;
 
-    //    std::cerr << "Warning: could not find compile target for '" << targetTriple << "'. Looking for closest match." << std::endl;
-    //    std::cerr << error << std::endl;
+        std::cerr << "Error: could not find compile target for '" << targetTriple << "'." << std::endl;
+        std::cerr << error << std::endl;
+        return nullptr;
 
-    //    //llvm::TargetRegistry::printRegisteredTargetsForVersion();
+        //error = "";
 
-    //    error = "";
+        //llvm::Triple triple(targetTriple);
 
-    //    llvm::Triple triple(targetTriple);
+        //target = llvm::TargetRegistry::lookupTarget(triple.getArchName(), triple, error);
+        //if (target == nullptr)
+        //{
+        //    std::cerr << "Error: couldn't find a matching compile target." << std::endl;
+        //    std::cerr << error << std::endl;
+        //}
 
-    //    target = llvm::TargetRegistry::lookupTarget(triple.getArchName(), triple, error);
-    //    if (target == nullptr)
-    //    {
-    //        std::cerr << "Error: couldn't find a matching compile target." << std::endl;
-    //        std::cerr << error << std::endl;
-    //    }
-
-    //    return target;
-    //}
+        //return target;
+    }
 }
 
