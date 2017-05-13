@@ -105,7 +105,7 @@ RULE(StatementBlock)
 
     builder.Ignore(1);
 
-    builder.SetNodeType<StatementBlockNode>();
+    builder.SetNodeType<StatementBlockChain>();
 }
 
 RULE(Function)
@@ -125,7 +125,7 @@ RULE(ProgramPiece)
     builder.Add(Function, OptionalWhitespace, ProgramPiece);
     builder.Add(Function);
 
-    builder.SetNodeType<ProgramPieceNode>();
+    builder.SetNodeType<ProgramPieceChain>();
 }
 
 RULE(Program)
