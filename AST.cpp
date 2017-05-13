@@ -133,10 +133,93 @@ void StatementBlockNode::Collapse(std::vector<Ptr<CustomNode>>& statements)
     realChild->Collapse(statements);
 }
 
+void StatementNode::Generate(CompileContext& context)
+{
+    for (Ptr<CustomNode> child : customChildren)
+    {
+        PtrCast<ExpressionNode>(child)->Evaluate(context);
+    }
+}
+
+llvm::Value* ExpressionNode::Evaluate(CompileContext& context)
+{
+    if (customChildren.size() == 0)
+        return nullptr;
+
+    NodePtr child = customChildren[0];
+    auto realChild = PtrCast<EvaluatableNode>(child);
+    return realChild->Evaluate(context);
+}
+
+void StringLiteralNode::Process()
+{
+    // TODO: make more robust
+    NodePtr child = children[0];
+    NodePtr grandchild = (*child)[0];
+
+    if (grandchild->GetType() != "StringNode")
+        return;
+
+    literal = PtrCast<Spark::StringNode>(grandchild)->Get();
+
+    children.clear();
+    children.push_back(grandchild);
+}
+
+llvm::Value* StringLiteralNode::Evaluate(CompileContext& context)
+{
+    llvm::Constant* val = llvm::ConstantDataArray::getString(
+        Spark::LLVMManager::Context(),
+        literal);
+
+    llvm::GlobalVariable* gvar = new llvm::GlobalVariable(
+        Spark::LLVMManager::Context(), val->getType(), true, llvm::GlobalVariable::LinkageTypes::PrivateLinkage, val, ".str");
+
+    auto zero = Spark::TypeConverter::Create<int>(0);
+    std::vector<llvm::Value*> indices { zero, zero };
+
+    //llvm::Type* strType = val->getType();
+    //llvm::Type* cstrType = strType->getArrayElementType()->getPointerTo();
+
+    return context.builder.CreateGEP(gvar, indices, "str_literal");
+
+    //return llvm::GetElementPtrConstantExpr(val->getType(),
+    //    val,
+    //    std::vector<llvm::Constant*> { zero },
+    //    cstrType,
+    //    0);
+}
+
 void FuncCallNode::Process()
 {
     ConvertToOnlyCustom();
     CustomNode::Process();
+}
+
+llvm::Value* FuncCallNode::Evaluate(CompileContext& context)
+{
+    std::cout << "***** EVALUATED *****" << std::endl;
+
+    // TODO: make robust
+    auto funcNameNode = PtrCast<IdentifierNode>(customChildren[0]);
+    std::string funcName = funcNameNode->GetValue();
+
+    auto exprNode = PtrCast<ExpressionNode>(customChildren[1]);
+    llvm::Value* result = exprNode->Evaluate(context);
+
+    if (result == nullptr)
+        return nullptr;
+
+    llvm::Function* func = context.symbolTable.GetFunction(funcName);
+
+    if (func == nullptr)
+    {
+        std::cerr << "Error: a function named '" << funcName << "' could not be found." << std::endl;
+        return nullptr;
+    }
+
+    std::vector<llvm::Value*> args { result };
+    return context.builder.CreateCall(func, args, funcName + "_call");
 }
 
 

@@ -65,6 +65,8 @@ RULE(StringLiteral)
     builder.Add('"', _StringContents, '"');
     builder.Ignore(0);
     builder.Ignore(2);
+
+    builder.SetNodeType<StringLiteralNode>();
 }
 
 RULE(FuncCall)

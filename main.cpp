@@ -19,7 +19,7 @@ public:
 
 
 // Temporarily in main.cpp, will be moved elsewhere at some-point
-llvm::Function* DeclarePrintf()
+llvm::Function* DeclarePrintf(SymbolTable& symbolTable)
 {
 
     llvm::Type* intType = Spark::TypeConverter::Get<int>();
@@ -29,7 +29,10 @@ llvm::Function* DeclarePrintf()
 
     std::vector<llvm::Type*> args { charType->getPointerTo() };
     auto sig = manager.GetFuncSignatureVarargs(intType, args);
-    return manager.DeclareFunction("printf", sig);
+    llvm::Function* func = manager.DeclareFunction("printf", sig);
+
+    symbolTable.AddFunction("print", func);
+    return func;
 }
 
 
@@ -53,6 +56,7 @@ int main()
     Spark::LLVMManager::Init("my_module");
 
     CompileContext globalContext;
+    DeclarePrintf(globalContext.symbolTable);
 
     std::cout << std::endl << "Gathering Symbols..." << std::endl;
 
@@ -62,7 +66,6 @@ int main()
 
     root->Generate(globalContext);
 
-    DeclarePrintf();
 
     std::cout << std::endl << "Begin module dump" << std::endl << std::endl;
     auto& manager = Spark::LLVMManager::Instance();

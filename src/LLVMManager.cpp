@@ -65,6 +65,14 @@ namespace Spark
         return bb;
     }
 
+    llvm::GlobalVariable* LLVMManager::CreateGlobalConstant(std::string name, llvm::Constant* value, llvm::GlobalValue::LinkageTypes linkage)
+    {
+        llvm::GlobalVariable* gvar = new llvm::GlobalVariable(
+            *currentModule, value->getType(), true, linkage, value, name);
+        return gvar;
+    }
+
+
     void LLVMManager::OptimizeFunction(llvm::Function* func)
     {
         funcPassManager->run(*func);

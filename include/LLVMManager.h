@@ -54,6 +54,8 @@ namespace Spark
 
         llvm::BasicBlock* Implement(llvm::Function* func);
 
+        llvm::GlobalVariable* CreateGlobalConstant(std::string name, llvm::Constant* value, llvm::GlobalValue::LinkageTypes linkage = llvm::GlobalValue::PrivateLinkage);
+
         void OptimizeFunction(llvm::Function* func);
 
         void CompileBC(std::string outfile);

@@ -140,20 +140,49 @@ class StatementNode : public CustomNode
 public:
     StatementNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
     std::string GetType() const override { return "StatementNode"; }
+
+    void Generate(CompileContext& context) override;
 };
 
-class ExpressionNode : public CustomNode
+class EvaluatableNode : public CustomNode
 {
 public:
-    ExpressionNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    EvaluatableNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    std::string GetType() const = 0;
+
+    virtual llvm::Value* Evaluate(CompileContext& context) = 0;
+};
+
+class ExpressionNode : public EvaluatableNode
+{
+public:
+    ExpressionNode(std::vector<NodePtr>& nodes) : EvaluatableNode(nodes) {}
     std::string GetType() const override { return "ExpressionNode"; }
+
+    llvm::Value* Evaluate(CompileContext& context) override;
 };
 
-class FuncCallNode : public CustomNode
+class StringLiteralNode : public EvaluatableNode
+{
+private:
+    std::string literal;
+public:
+    StringLiteralNode(std::vector<NodePtr>& nodes) : EvaluatableNode(nodes) {}
+    std::string GetType() const override { return "StringLiteralNode"; }
+
+    void Process() override;
+    llvm::Value* Evaluate(CompileContext& context) override;
+
+    std::string Get() const { return literal; }
+};
+
+class FuncCallNode : public EvaluatableNode
 {
 public:
-    FuncCallNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    FuncCallNode(std::vector<NodePtr>& nodes) : EvaluatableNode(nodes) {}
     std::string GetType() const override { return "FuncCallNode"; }
     void Process() override;
+
+    llvm::Value* Evaluate(CompileContext& context) override;
 };
 
