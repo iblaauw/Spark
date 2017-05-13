@@ -357,6 +357,8 @@ def main():
     default_cpp_target.Add('main.cpp')
     default_cpp_target.Add('Expressions.cpp')
     default_cpp_target.Add('AST.cpp')
+    default_cpp_target.Add('SymbolTable.cpp')
+
     set_default_target(default_cpp_target)
 
     cpp2o_rule.include_dirs.append('include')

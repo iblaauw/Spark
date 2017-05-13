@@ -47,9 +47,12 @@ namespace Spark
             return GetFuncSignature(returnType, argumentVec);
         }
 
+        llvm::FunctionType* GetFuncSignatureVarargs(llvm::Type* returnType, std::vector<llvm::Type*> argumentTypes);
+
+
         llvm::Function* DeclareFunction(std::string name, llvm::FunctionType* funcSignature, llvm::GlobalValue::LinkageTypes linkage = llvm::GlobalValue::ExternalLinkage);
 
-        llvm::IRBuilder<> Implement(llvm::Function* func);
+        llvm::BasicBlock* Implement(llvm::Function* func);
 
         void OptimizeFunction(llvm::Function* func);
 

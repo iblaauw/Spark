@@ -18,6 +18,19 @@ public:
 };
 
 
+// Temporarily in main.cpp, will be moved elsewhere at some-point
+llvm::Function* DeclarePrintf()
+{
+
+    llvm::Type* intType = Spark::TypeConverter::Get<int>();
+    llvm::Type* charType = Spark::TypeConverter::Get<char>();
+
+    auto& manager = Spark::LLVMManager::Instance();
+
+    std::vector<llvm::Type*> args { charType->getPointerTo() };
+    auto sig = manager.GetFuncSignatureVarargs(intType, args);
+    return manager.DeclareFunction("printf", sig);
+}
 
 
 int main()
@@ -39,7 +52,17 @@ int main()
 
     Spark::LLVMManager::Init("my_module");
 
-    root->Generate();
+    CompileContext globalContext;
+
+    std::cout << std::endl << "Gathering Symbols..." << std::endl;
+
+    root->GatherSymbols(globalContext);
+
+    std::cout << std::endl << "Generating..." << std::endl;
+
+    root->Generate(globalContext);
+
+    DeclarePrintf();
 
     std::cout << std::endl << "Begin module dump" << std::endl << std::endl;
     auto& manager = Spark::LLVMManager::Instance();
@@ -48,27 +71,6 @@ int main()
 
     //manager.CompileBC("input.bc");
     manager.Compile("input.o");
-
-    //{
-    //    Spark::LLVMManager::Init("my_module_yay");
-    //    Spark::LLVMManager& manager = Spark::LLVMManager::Instance();
-    //    std::cout << std::endl << "Begin module dump" << std::endl << std::endl;
-
-    //    //llvm::Type* intType = llvm::Type::getInt32Ty(Spark::LLVMManager::Context());
-    //    llvm::Type* intType = Spark::TypeConverter::Get<int>();
-    //    llvm::Type* floatType = Spark::TypeConverter::Get<float>();
-    //    auto sig = manager.GetFuncSignature(intType, intType, floatType);
-    //    auto fooFunc = manager.DeclareFunction("foo", sig);
-    //    llvm::IRBuilder<> builder = manager.Implement(fooFunc);
-
-    //    llvm::Constant* c = Spark::TypeConverter::Create<int>(5);
-    //    builder.CreateRet(c);
-
-
-    //    manager.Dump();
-    //    manager.Verify();
-    //}
-
 
     return 0;
 }

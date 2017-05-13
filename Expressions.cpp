@@ -21,6 +21,17 @@ CHARSET(WhitespaceChar)
     return c == ' ' || c == '\n' || c == '\r' || c == '\t';
 }
 
+CHARSET(StringLiteralChar)
+{
+    return c != '"' && c != '\n';
+}
+
+RULE(Whitespace)
+{
+    Autoname(builder);
+    builder.AddString(WhitespaceChar);
+}
+
 RULE(OptionalWhitespace)
 {
     Autoname(builder);
@@ -32,6 +43,8 @@ RULE(Identifier)
 {
     Autoname(builder);
     builder.AddString(Alpha);
+
+    builder.SetNodeType<IdentifierNode>();
 }
 
 RULE(Number)
@@ -40,17 +53,66 @@ RULE(Number)
     builder.AddString(NumberChar);
 }
 
+RULE(_StringContents)
+{
+    Autoname(builder);
+    builder.AddString(StringLiteralChar);
+}
+
+RULE(StringLiteral)
+{
+    Autoname(builder);
+    builder.Add('"', _StringContents, '"');
+    builder.Ignore(0);
+    builder.Ignore(2);
+}
+
+RULE(FuncCall)
+{
+    Autoname(builder);
+    builder.Add(Identifier, '(', Expression, ')');
+
+    builder.SetNodeType<FuncCallNode>();
+}
+
 RULE(Expression)
 {
+    Autoname(builder);
+    builder.Add(Number);
+    builder.Add(StringLiteral);
+    builder.Add(FuncCall);
 
+    builder.SetNodeType<ExpressionNode>();
+}
+
+RULE(Statement)
+{
+    Autoname(builder);
+    // TODO: fix this, its too lenient
+    builder.Add(Expression, ';');
+    builder.Ignore(1);
+
+    builder.SetNodeType<StatementNode>();
+}
+
+RULE(StatementBlock)
+{
+    Autoname(builder);
+    builder.Add(Statement, OptionalWhitespace, StatementBlock);
+    builder.AddEmpty();
+
+    builder.Ignore(1);
+
+    builder.SetNodeType<StatementBlockNode>();
 }
 
 RULE(Function)
 {
     Autoname(builder);
-    builder.Add("func ", Identifier, "()", OptionalWhitespace, '{', OptionalWhitespace, '}');
+    builder.Add("func ", Identifier, "()", OptionalWhitespace, '{', OptionalWhitespace, StatementBlock, OptionalWhitespace, '}');
     builder.Ignore(3);
     builder.Ignore(5);
+    builder.Ignore(7);
 
     builder.SetNodeType<FunctionNode>();
 }

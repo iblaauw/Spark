@@ -42,20 +42,27 @@ namespace Spark
         return llvm::FunctionType::get(returnType, argumentTypes, false);
     }
 
+    llvm::FunctionType* LLVMManager::GetFuncSignatureVarargs(llvm::Type* returnType, std::vector<llvm::Type*> argumentTypes)
+    {
+        return llvm::FunctionType::get(returnType, argumentTypes, true);
+    }
+
+
     llvm::Function* LLVMManager::DeclareFunction(std::string name, llvm::FunctionType* funcSignature, llvm::GlobalValue::LinkageTypes linkage)
     {
         return llvm::Function::Create(funcSignature, linkage, name, currentModule);
     }
 
-    llvm::IRBuilder<> LLVMManager::Implement(llvm::Function* func)
+    llvm::BasicBlock* LLVMManager::Implement(llvm::Function* func)
     {
         if (!func->empty())
             throw SparkException("Error: attempting to reimplement function.");
 
         llvm::IRBuilder<> builder(globalContext);
         llvm::BasicBlock* bb = llvm::BasicBlock::Create(globalContext, "entry", func);
-        builder.SetInsertPoint(bb);
-        return builder;
+        //builder.SetInsertPoint(bb);
+        //return builder;
+        return bb;
     }
 
     void LLVMManager::OptimizeFunction(llvm::Function* func)

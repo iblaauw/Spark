@@ -6,6 +6,8 @@
 #include "llvm/IR/IRBuilder.h"
 
 #include "Node.h"
+#include "SymbolTable.h"
+#include "CompileContext.h"
 
 using Spark::Node;
 using Spark::NodePtr;
@@ -33,9 +35,14 @@ public:
         Map([](Ptr<CustomNode> c) { c->Process(); });
     }
 
-    virtual void Generate()
+    virtual void GatherSymbols(CompileContext& context)
     {
-        Map([](Ptr<CustomNode> c) { c->Generate(); });
+        Map([&](Ptr<CustomNode> c) { c->GatherSymbols(context); });
+    }
+
+    virtual void Generate(CompileContext& context)
+    {
+        Map([&](Ptr<CustomNode> c) { c->Generate(context); });
     }
 
 private:
@@ -68,15 +75,37 @@ protected:
     }
 };
 
-class FunctionNode : public CustomNode
+class StringValueNode : public CustomNode
+{
+private:
+    std::string value;
+public:
+    StringValueNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    virtual std::string GetType() const = 0;
+
+    virtual void Process() override;
+
+    std::string GetValue() { return value; }
+};
+
+class IdentifierNode : public StringValueNode
 {
 public:
+    IdentifierNode(std::vector<NodePtr>& nodes) : StringValueNode(nodes) {}
+    std::string GetType() const override { return "IdentifierNode"; }
+};
+
+class FunctionNode : public CustomNode
+{
+private:
     std::string funcName;
+    llvm::Function* funcDefinition;
 public:
     FunctionNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
     std::string GetType() const override { return "FunctionNode"; }
     void Process() override;
-    void Generate() override;
+    void GatherSymbols(CompileContext& context) override;
+    void Generate(CompileContext& context) override;
 };
 
 class ProgramNode : public CustomNode
@@ -94,5 +123,37 @@ public:
     std::string GetType() const override { return "ProgramPieceNode"; }
 
     void Collapse(std::vector<Ptr<CustomNode>>& funcs);
+};
+
+class StatementBlockNode : public CustomNode
+{
+public:
+    StatementBlockNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    std::string GetType() const override { return "StatementBlockNode"; }
+
+    void Process() override;
+    void Collapse(std::vector<Ptr<CustomNode>>& statements);
+};
+
+class StatementNode : public CustomNode
+{
+public:
+    StatementNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    std::string GetType() const override { return "StatementNode"; }
+};
+
+class ExpressionNode : public CustomNode
+{
+public:
+    ExpressionNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    std::string GetType() const override { return "ExpressionNode"; }
+};
+
+class FuncCallNode : public CustomNode
+{
+public:
+    FuncCallNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    std::string GetType() const override { return "FuncCallNode"; }
+    void Process() override;
 };
 

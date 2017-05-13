@@ -1,6 +1,7 @@
 parser
 
 build/
+temp/
 
 input.txt
 out.txt
