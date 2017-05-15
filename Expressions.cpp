@@ -47,6 +47,12 @@ RULE(Identifier)
     builder.SetNodeType<IdentifierNode>();
 }
 
+RULE(Type)
+{
+    Autoname(builder);
+    builder.AddString(Alpha);
+}
+
 RULE(Number)
 {
     Autoname(builder);
@@ -108,16 +114,6 @@ RULE(StatementBlock)
     builder.SetNodeType<StatementBlockChain>();
 }
 
-RULE(Function)
-{
-    Autoname(builder);
-    builder.Add("func ", Identifier, "()", OptionalWhitespace, '{', OptionalWhitespace, StatementBlock, OptionalWhitespace, '}');
-    builder.Ignore(3);
-    builder.Ignore(5);
-    builder.Ignore(7);
-
-    builder.SetNodeType<FunctionNode>();
-}
 
 RULE(ProgramPiece)
 {
@@ -138,8 +134,54 @@ RULE(Program)
     builder.SetNodeType<ProgramNode>();
 }
 
+// Function Declarations
 
+RULE(Function)
+{
+    Autoname(builder);
+    builder.Add("func ", Identifier, '(', FunctionParameterList, ')', OptionalWhitespace, '{', OptionalWhitespace, StatementBlock, OptionalWhitespace, '}');
 
+    builder.Ignore(5);
+    builder.Ignore(7);
+    builder.Ignore(9);
+
+    builder.SetNodeType<FunctionNode>();
+}
+
+RULE(FunctionParameterChain)
+{
+    Autoname(builder);
+    builder.Add(FunctionParameter, OptionalWhitespace, ',', OptionalWhitespace, FunctionParameterChain);
+    builder.Add(FunctionParameter);
+
+    builder.Ignore(1);
+    builder.Ignore(2);
+    builder.Ignore(3);
+
+    builder.SetNodeType<FuncParamChain>();
+}
+
+RULE(FunctionParameterList)
+{
+    Autoname(builder);
+    builder.Add(OptionalWhitespace, FunctionParameterChain, OptionalWhitespace);
+    builder.AddEmpty();
+
+    builder.Ignore(0);
+    builder.Ignore(2);
+
+    builder.SetNodeType<FuncParamListNode>();
+}
+
+RULE(FunctionParameter)
+{
+    Autoname(builder);
+    builder.Add(Type, Whitespace, Identifier);
+
+    builder.Ignore(1);
+
+    builder.SetNodeType<FuncParameterNode>();
+}
 
 
 

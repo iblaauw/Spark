@@ -19,14 +19,19 @@ CHARSET(StringLiteralChar);
 RULE(Whitespace);
 RULE(OptionalWhitespace);
 RULE(Identifier);
+RULE(Type);
 RULE(Number);
 RULE(StringLiteral);
 RULE(FuncCall);
 RULE(Expression);
 RULE(Statement);
 RULE(StatementBlock);
-RULE(Function);
 RULE(ProgramPiece);
 RULE(Program);
+
+// Function Declarations
+RULE(Function);
+RULE(FunctionParameterList);
+RULE(FunctionParameter);
 
 

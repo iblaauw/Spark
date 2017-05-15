@@ -190,3 +190,29 @@ public:
     llvm::Value* Evaluate(CompileContext& context) override;
 };
 
+// Function Declaration
+class FuncParamListNode : public CustomNode
+{
+public:
+    FuncParamListNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    std::string GetType() const override { return "FuncParamListNode"; }
+};
+
+class FuncParamChain : public ChainingNode
+{
+public:
+    FuncParamChain(std::vector<NodePtr>& nodes) : ChainingNode(nodes) {}
+    std::string GetType() const override { return "FuncParamChain"; }
+};
+
+class FuncParameterNode : public CustomNode
+{
+public:
+    FuncParameterNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    std::string GetType() const override { return "FuncParameterNode"; }
+};
+
+
+
+
+

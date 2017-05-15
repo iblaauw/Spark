@@ -94,7 +94,6 @@ void FunctionNode::Generate(CompileContext& context)
     CustomNode::Generate(context);
 
     context.builder.CreateRetVoid();
-
 }
 
 void ProgramNode::Process()
