@@ -7,8 +7,7 @@
 #include "TypeConverter.h"
 #include "Utils.h"
 
-#include "Expressions.h"
-#include "AST.h"
+#include "AST/Program.h"
 
 class OperatorNode : public Spark::Node
 {

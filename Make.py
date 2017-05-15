@@ -249,7 +249,7 @@ class Target(object):
 
         Target._targets[name] = self
 
-    def Add(self, path, force=False):
+    def Add(self, path, force=False, recurse=False):
         if not os.path.exists(path):
             raise Exception("Error: could not find file '{}'".format(path))
 
@@ -258,7 +258,12 @@ class Target(object):
         if os.path.isdir(path):
             for f in os.listdir(path):
                 ff = os.path.join(path, f)
-                self.Add(ff, force)
+
+                if os.path.isdir(ff):
+                    if recurse:
+                        self.Add(ff, force, recurse)
+                else:
+                    self.Add(ff, force, recurse)
             return
 
         if os.path.isfile(path):
@@ -354,10 +359,7 @@ def main():
         return
 
     default_cpp_target.Add('src/')
-    default_cpp_target.Add('main.cpp')
-    default_cpp_target.Add('Expressions.cpp')
-    default_cpp_target.Add('AST.cpp')
-    default_cpp_target.Add('SymbolTable.cpp')
+    default_cpp_target.Add('lang/', recurse=True)
 
     set_default_target(default_cpp_target)
 
