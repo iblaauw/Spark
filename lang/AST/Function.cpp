@@ -4,12 +4,15 @@
 #include "TypeConverter.h"
 #include "LLVMManager.h"
 
+#include <iostream>
 
 class FuncParamChain : public ChainingNode
 {
 public:
     FuncParamChain(std::vector<NodePtr>& nodes) : ChainingNode(nodes) {}
     std::string GetType() const override { return "FuncParamChain"; }
+
+    const std::vector<Ptr<CustomNode>>& GetNodes() const { return customChildren; }
 };
 
 
@@ -70,12 +73,24 @@ void FunctionNode::Process()
 void FunctionNode::GatherSymbols(CompileContext& context)
 {
     // TODO: make this more safe and robust, check that function doesn't already exist
+    auto nameNode = SafeGet<IdentifierNode>(0, "IdentifierNode");
+    funcName = nameNode->GetValue();
 
-    funcName = PtrCast<IdentifierNode>(customChildren[0])->GetValue();
+    auto paramListNode = SafeGet<FuncParamListNode>(1, "FuncParamListNode");
+    if (paramListNode == nullptr)
+    {
+        std::cerr << "Internal Error: Invalid parameter list in FunctionNode" << std::endl;
+        return;
+    }
+
+    std::vector<llvm::Type*> paramTypes;
+    paramListNode->GetParamTypes(paramTypes);
+
+    std::cout << "Num Func Params: " << paramTypes.size() << std::endl;
 
     auto& manager = Spark::LLVMManager::Instance();
     llvm::Type* voidType = Spark::TypeConverter::Get<void>();
-    auto signature = manager.GetFuncSignature(voidType);
+    auto signature = manager.GetFuncSignature(voidType, paramTypes);
     funcDefinition = manager.DeclareFunction(funcName, signature);
 
     context.symbolTable.AddFunction(funcName, funcDefinition);
@@ -97,4 +112,61 @@ void FunctionNode::Generate(CompileContext& context)
     CustomNode::Generate(context);
 
     context.builder.CreateRetVoid();
+}
+
+void FuncParamListNode::GetParamTypes(std::vector<llvm::Type*>& vecOut)
+{
+    // Case where there are no parameters
+    if (customChildren.size() == 0)
+        return;
+
+    vecOut.clear();
+
+    Ptr<FuncParamChain> chainNode = SafeGet<FuncParamChain>(0, "FuncParamChain");
+
+    if (chainNode == nullptr)
+    {
+        std::cerr << "Internal Error: Invalid parameter chain in FuncParamListNode" << std::endl;
+        return;
+    }
+
+    auto& nodes = chainNode->GetNodes();
+
+    for (auto param : nodes)
+    {
+        if (param->GetType() != "FuncParameterNode")
+        {
+            std::cerr << "Internal Error: invalid node type in parameter list" << std::endl;
+            continue;
+        }
+
+        Ptr<FuncParameterNode> p = PtrCast<FuncParameterNode>(param);
+
+        auto typenode = p->GetParamType();
+        if (typenode == nullptr)
+            continue;
+
+        std::cout << "push" << std::endl;
+        vecOut.push_back(typenode->GetIRType()->GetIR());
+    }
+}
+
+Ptr<IdentifierNode> FuncParameterNode::GetIdentifier() const
+{
+    auto val = SafeGet<IdentifierNode>(1, "IdentifierNode");
+    if (val == nullptr)
+    {
+        std::cerr << "Internal Error: invalid identifier node for FuncParameterNode" << std::endl;
+    }
+    return val;
+}
+
+Ptr<TypeNode> FuncParameterNode::GetParamType() const
+{
+    auto val = SafeGet<TypeNode>(0, "TypeNode");
+    if (val == nullptr)
+    {
+        std::cerr << "Internal Error: invalid type node for FuncParameterNode" << std::endl;
+    }
+    return val;
 }

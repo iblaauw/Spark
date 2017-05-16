@@ -9,6 +9,8 @@
 #include "CompileContext.h"
 #include "LangValue.h"
 
+#include <iostream>
+
 #define RULE(name) \
 void name(Spark::IRuleBuilder& builder)
 
@@ -46,6 +48,32 @@ protected:
     void ConvertToOnlyCustom();
 
     void Map(std::function<void(Ptr<CustomNode>)> func);
+
+    template <class T>
+    Ptr<T> SafeGet(int index) const
+    {
+        if (customChildren.size() < index)
+            return nullptr;
+        return PtrCast<T>(customChildren[index]);
+    }
+
+    template <class T>
+    Ptr<T> SafeGet(int index, std::string type) const
+    {
+        if (customChildren.size() <= index)
+            return nullptr;
+        Ptr<CustomNode> child = customChildren[index];
+        if (child->GetType() != type)
+            return nullptr;
+
+        return PtrCast<T>(child);
+    }
+
+    /*template <class T>
+    Ptr<T> SafeGet(int index, const char* type) const
+    {
+        return SafeGet<T>(index, std::string(type));
+    }*/
 };
 
 class StringValueNode : public CustomNode

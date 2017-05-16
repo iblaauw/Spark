@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AST/RuleBase.h"
+#include "AST/Common.h"
 
 RULE(Function);
 RULE(FunctionParameterList);
@@ -24,6 +25,8 @@ class FuncParamListNode : public CustomNode
 public:
     FuncParamListNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
     std::string GetType() const override { return "FuncParamListNode"; }
+
+    void GetParamTypes(std::vector<llvm::Type*>& vecOut);
 };
 
 class FuncParameterNode : public CustomNode
@@ -31,4 +34,7 @@ class FuncParameterNode : public CustomNode
 public:
     FuncParameterNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
     std::string GetType() const override { return "FuncParameterNode"; }
+
+    Ptr<IdentifierNode> GetIdentifier() const;
+    Ptr<TypeNode> GetParamType() const;
 };
