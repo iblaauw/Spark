@@ -14,10 +14,13 @@ RULE(Expression)
     builder.SetNodeType<ExpressionNode>();
 }
 
-llvm::Value* ExpressionNode::Evaluate(CompileContext& context)
+Ptr<RValue> ExpressionNode::Evaluate(CompileContext& context)
 {
     if (customChildren.size() == 0)
-        return nullptr;
+    {
+        auto error = std::make_shared<ErrorValue>();
+        return PtrCast<RValue>(error);
+    }
 
     auto child = customChildren[0];
     return child->Evaluate(context);

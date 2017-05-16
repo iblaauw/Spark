@@ -9,7 +9,7 @@ class RValue
 public:
     virtual bool IsLValue() const { return false; }
     virtual llvm::Value* GetValue() const = 0;
-    virtual const LangType& GetType() const = 0;
+    virtual LangType* GetType() const = 0;
 };
 
 class LValue : public RValue
@@ -23,13 +23,22 @@ class GeneralRValue : public RValue
 {
 private:
     llvm::Value* value;
-    const LangType& type;
+    LangType* type;
 public:
-    GeneralRValue(llvm::Value* value, const LangType& type) : value(value), type(type)
+    GeneralRValue(llvm::Value* value, LangType* type) : value(value), type(type)
     {}
 
     llvm::Value* GetValue() const override { return value; }
-    const LangType& GetType() const override { return type; }
+    LangType* GetType() const override { return type; }
 };
 
+class ErrorValue : public LValue
+{
+public:
+    // TODO: move this to a seperate Errors.h with more stuff. Also print an error message on creation
+    ErrorValue() {}
+    virtual llvm::Value* GetValue() const override { return nullptr; }
+    virtual LangType* GetType() const override { return nullptr; }
+    virtual void Assign(const RValue& value, CompileContext& context) const override {};
+};
 

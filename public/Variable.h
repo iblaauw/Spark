@@ -7,15 +7,15 @@
 class Variable : public LValue
 {
     std::string name;
-    const LangType& type;
+    LangType* type;
     llvm::Value* value;
 public:
-    Variable(std::string name, const LangType& type);
+    Variable(std::string name, LangType* type);
 
     void SetValue(llvm::Value* value) { this->value = value; }
 
     llvm::Value* GetValue() const override { return value; }
-    const LangType& GetType() const override { return type; }
+    LangType* GetType() const override { return type; }
     void Assign(const RValue& newValue, CompileContext& context) const override;
 };
 

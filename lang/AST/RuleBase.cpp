@@ -7,6 +7,16 @@ void CustomNode::Process()
     Map([](Ptr<CustomNode> c) { c->Process(); });
 }
 
+void CustomNode::GatherTypes(CompileContext& context)
+{
+    Map([&](Ptr<CustomNode> c) { c->GatherTypes(context); });
+}
+
+void CustomNode::VerifyTypes(CompileContext& context)
+{
+    Map([&](Ptr<CustomNode> c) { c->VerifyTypes(context); });
+}
+
 void CustomNode::GatherSymbols(CompileContext& context)
 {
     Map([&](Ptr<CustomNode> c) { c->GatherSymbols(context); });
@@ -17,7 +27,7 @@ void CustomNode::Generate(CompileContext& context)
     Map([&](Ptr<CustomNode> c) { c->Generate(context); });
 }
 
-llvm::Value* CustomNode::Evaluate(CompileContext& context)
+Ptr<RValue> CustomNode::Evaluate(CompileContext& context)
 {
     std::cerr << "Error: node '" << name << "' cannot be evaluated." << std::endl;
     return nullptr;

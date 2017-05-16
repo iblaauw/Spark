@@ -3,9 +3,11 @@
 #include <vector>
 #include <functional>
 
+#include "PtrUtils.h"
 #include "IRuleBuilder.h"
 #include "Node.h"
 #include "CompileContext.h"
+#include "LangValue.h"
 
 #define RULE(name) \
 void name(Spark::IRuleBuilder& builder)
@@ -17,14 +19,6 @@ bool name(char c)
 using Spark::Node;
 using Spark::NodePtr;
 
-template <class T>
-using Ptr = std::shared_ptr<T>;
-
-template <class T, class U>
-inline Ptr<T> PtrCast(Ptr<U> val)
-{
-    return std::static_pointer_cast<T>(val);
-}
 
 class CustomNode : public Spark::Node
 {
@@ -36,11 +30,15 @@ public:
 
     virtual void Process();
 
+    virtual void GatherTypes(CompileContext& context);
+
+    virtual void VerifyTypes(CompileContext& context);
+
     virtual void GatherSymbols(CompileContext& context);
 
     virtual void Generate(CompileContext& context);
 
-    virtual llvm::Value* Evaluate(CompileContext& context);
+    virtual Ptr<RValue> Evaluate(CompileContext& context);
 
 private:
     void Collect();

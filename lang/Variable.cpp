@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-Variable::Variable(std::string name, const LangType& type) : name(name), type(type)
+Variable::Variable(std::string name, LangType* type) : name(name), type(type)
 {}
 
 void Variable::Assign(const RValue& newValue, CompileContext& context) const

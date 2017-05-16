@@ -38,7 +38,7 @@ void StringLiteralNode::Process()
     children.push_back(grandchild);
 }
 
-llvm::Value* StringLiteralNode::Evaluate(CompileContext& context)
+Ptr<RValue> StringLiteralNode::Evaluate(CompileContext& context)
 {
     llvm::Constant* val = llvm::ConstantDataArray::getString(
         Spark::LLVMManager::Context(),
@@ -49,7 +49,10 @@ llvm::Value* StringLiteralNode::Evaluate(CompileContext& context)
     auto zero = Spark::TypeConverter::Create<int>(0);
     std::vector<llvm::Value*> indices { zero, zero };
 
-    return context.builder.CreateGEP(gvar, indices, "str_literal");
+    LangType* type = context.symbolTable.GetType("string");
+    llvm::Value* instruction = context.builder.CreateGEP(gvar, indices, "str_literal");
+    auto ptrVal = std::make_shared<GeneralRValue>(instruction, type);
+    return PtrCast<RValue>(ptrVal);
 }
 
 

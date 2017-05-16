@@ -39,6 +39,9 @@ int main()
     DeclarePrintf(globalContext.symbolTable);
     AddBuiltinTypes(globalContext.symbolTable);
 
+    root->GatherTypes(globalContext);
+    root->VerifyTypes(globalContext);
+
     std::cout << std::endl << "Gathering Symbols..." << std::endl;
 
     root->GatherSymbols(globalContext);

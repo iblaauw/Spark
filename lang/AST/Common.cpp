@@ -1,5 +1,7 @@
 #include "AST/Common.h"
 
+#include <iostream>
+
 CHARSET(Alpha)
 {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
@@ -54,5 +56,23 @@ RULE(Number)
     Autoname(builder);
     builder.AddString(NumberChar);
 }
+
+
+void TypeNode::VerifyTypes(CompileContext& context)
+{
+    auto& symbols = context.symbolTable;
+    std::string val = GetValue();
+    type = symbols.GetType(val);
+
+    if (type == nullptr)
+    {
+        std::cerr << "Error: unknown type '" << val << "'" << std::endl;
+        type = symbols.GetType("int");
+    }
+}
+
+
+
+
 
 

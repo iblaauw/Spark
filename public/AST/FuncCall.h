@@ -12,7 +12,7 @@ public:
     std::string GetType() const override { return "FuncCallNode"; }
     void Process() override;
 
-    llvm::Value* Evaluate(CompileContext& context) override;
+    Ptr<RValue> Evaluate(CompileContext& context) override;
 };
 
 

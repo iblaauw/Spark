@@ -19,28 +19,36 @@ void FuncCallNode::Process()
     CustomNode::Process();
 }
 
-llvm::Value* FuncCallNode::Evaluate(CompileContext& context)
+Ptr<RValue> FuncCallNode::Evaluate(CompileContext& context)
 {
     // TODO: make robust
     auto funcNameNode = PtrCast<IdentifierNode>(customChildren[0]);
     std::string funcName = funcNameNode->GetValue();
 
     auto exprNode = customChildren[1];
-    llvm::Value* result = exprNode->Evaluate(context);
+    Ptr<RValue> result = exprNode->Evaluate(context);
 
     if (result == nullptr)
-        return nullptr;
+    {
+        auto error = std::make_shared<ErrorValue>();
+        return PtrCast<RValue>(error);
+    }
 
     llvm::Function* func = context.symbolTable.GetFunction(funcName);
 
     if (func == nullptr)
     {
         std::cerr << "Error: a function named '" << funcName << "' could not be found." << std::endl;
-        return nullptr;
+        auto error = std::make_shared<ErrorValue>();
+        return PtrCast<RValue>(error);
     }
 
-    std::vector<llvm::Value*> args { result };
-    return context.builder.CreateCall(func, args, funcName + "_call");
+    std::vector<llvm::Value*> args { result->GetValue() };
+    llvm::Value* value = context.builder.CreateCall(func, args, funcName + "_call");
+    LangType* retType = context.symbolTable.GetType("void");
+
+    auto ptrVal = std::make_shared<GeneralRValue>(value, retType);
+    return PtrCast<RValue>(ptrVal);
 }
 
 

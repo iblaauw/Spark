@@ -22,7 +22,7 @@ public:
     virtual bool IsAssignableFrom(LangType& otherType) const;
     virtual void InsertConversion(LangType& fromType, CompileContext& context) const;
 
-    // TODO: add inheritance
+    // TODO: add inheritance and const-ness
 };
 
 
