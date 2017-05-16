@@ -5,7 +5,6 @@
 
 #include "IRuleBuilder.h"
 #include "Node.h"
-#include "SymbolTable.h"
 #include "CompileContext.h"
 
 #define RULE(name) \

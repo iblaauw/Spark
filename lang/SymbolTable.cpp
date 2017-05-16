@@ -32,3 +32,28 @@ llvm::Function* SymbolTable::GetFunction(std::string name) const
     return parent->GetFunction(name);
 }
 
+
+void SymbolTable::AddType(std::string name, LangType* type)
+{
+    typeTable[name] = type;
+}
+
+bool SymbolTable::ContainsType(std::string name) const
+{
+    return typeTable.count(name) > 0;
+}
+
+LangType* SymbolTable::GetType(std::string name) const
+{
+    auto iter = typeTable.find(name);
+    if (iter != typeTable.end())
+        return iter->second;
+
+    if (parent == nullptr)
+        return nullptr;
+
+    return parent->GetType(name);
+}
+
+
+
