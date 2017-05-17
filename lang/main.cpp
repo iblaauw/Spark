@@ -36,8 +36,8 @@ int main()
     Spark::LLVMManager::Init("my_module");
 
     CompileContext globalContext;
-    DeclarePrintf(globalContext.symbolTable);
     AddBuiltinTypes(globalContext.symbolTable);
+    DeclarePrintf(globalContext.symbolTable);
 
     root->GatherTypes(globalContext);
     root->VerifyTypes(globalContext);

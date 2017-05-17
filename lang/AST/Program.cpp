@@ -5,8 +5,8 @@
 RULE(ProgramPiece)
 {
     Autoname(builder);
-    builder.Add(Function, OptionalWhitespace, ProgramPiece);
-    builder.Add(Function);
+    builder.Add(FunctionRule, OptionalWhitespace, ProgramPiece);
+    builder.Add(FunctionRule);
 
     builder.SetNodeType<ProgramPieceChain>();
 }

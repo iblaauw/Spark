@@ -2,16 +2,16 @@
 
 #include "AST/RuleBase.h"
 #include "AST/Common.h"
+#include "Function.h"
 
-RULE(Function);
+RULE(FunctionRule);
 RULE(FunctionParameterList);
 RULE(FunctionParameter);
 
 class FunctionNode : public CustomNode
 {
 private:
-    std::string funcName;
-    llvm::Function* funcDefinition;
+    Function* funcDefinition;
 public:
     FunctionNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
     std::string GetType() const override { return "FunctionNode"; }
@@ -26,7 +26,8 @@ public:
     FuncParamListNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
     std::string GetType() const override { return "FuncParamListNode"; }
 
-    void GetParamTypes(std::vector<llvm::Type*>& vecOut);
+    void GetParamTypes(std::vector<LangType*>& vecOut);
+    void GetParamNames(std::vector<std::string>& vecOut);
 };
 
 class FuncParameterNode : public CustomNode

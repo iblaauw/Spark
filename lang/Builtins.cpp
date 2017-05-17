@@ -1,21 +1,29 @@
 #include "Builtins.h"
 
 #include "LangType.h"
+#include "Function.h"
 #include "TypeConverter.h"
 
 llvm::Function* DeclarePrintf(SymbolTable& symbolTable)
 {
-
-    llvm::Type* intType = Spark::TypeConverter::Get<int>();
-    llvm::Type* charType = Spark::TypeConverter::Get<char>();
+    LangType* intType = symbolTable.GetType("int");
+    LangType* stringType = symbolTable.GetType("string");
 
     auto& manager = Spark::LLVMManager::Instance();
 
-    std::vector<llvm::Type*> args { charType->getPointerTo() };
-    auto sig = manager.GetFuncSignatureVarargs(intType, args);
-    llvm::Function* func = manager.DeclareFunction("printf", sig);
+    std::vector<LangType*> args { stringType };
+    std::vector<std::string> paramNames { "value" };
+    Function* langfunc = new Function("printf", intType, args, paramNames);
 
-    symbolTable.AddFunction("print", func);
+    std::vector<llvm::Type*> argsIR;
+    langfunc->GetIRTypes(argsIR);
+
+    auto sig = manager.GetFuncSignatureVarargs(intType->GetIR(), argsIR);
+    llvm::Function* func = manager.DeclareFunction(langfunc->GetName(), sig);
+
+    langfunc->SetIR(func);
+
+    symbolTable.AddFunction("print", langfunc);
     return func;
 }
 
@@ -48,6 +56,9 @@ void AddBuiltinTypes(SymbolTable& symbolTable)
     symbolTable.AddType(type->GetName(), type);
 
     type = _CreateType<int>("int");
+    symbolTable.AddType(type->GetName(), type);
+
+    type = _CreateType<char>("char");
     symbolTable.AddType(type->GetName(), type);
 
     type = _CreateType<bool>("bool");

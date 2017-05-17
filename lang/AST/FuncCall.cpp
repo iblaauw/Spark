@@ -34,7 +34,7 @@ Ptr<RValue> FuncCallNode::Evaluate(CompileContext& context)
         return PtrCast<RValue>(error);
     }
 
-    llvm::Function* func = context.symbolTable.GetFunction(funcName);
+    Function* func = context.symbolTable.GetFunction(funcName);
 
     if (func == nullptr)
     {
@@ -43,8 +43,10 @@ Ptr<RValue> FuncCallNode::Evaluate(CompileContext& context)
         return PtrCast<RValue>(error);
     }
 
+    llvm::Function* funcDef = func->GetIR();
+
     std::vector<llvm::Value*> args { result->GetValue() };
-    llvm::Value* value = context.builder.CreateCall(func, args, funcName + "_call");
+    llvm::Value* value = context.builder.CreateCall(funcDef, args, funcName + "_call");
     LangType* retType = context.symbolTable.GetType("void");
 
     auto ptrVal = std::make_shared<GeneralRValue>(value, retType);

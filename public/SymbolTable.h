@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 
-#include "llvm/IR/Function.h"
+#include "Function.h"
 #include "LangType.h"
 
 class SymbolTable
@@ -11,7 +11,7 @@ class SymbolTable
 private:
     SymbolTable* parent;
 
-    std::map<std::string, llvm::Function*> funcTable;
+    std::map<std::string, Function*> funcTable;
     std::map<std::string, LangType*> typeTable;
 public:
     SymbolTable();
@@ -19,10 +19,10 @@ public:
 
     void SetParent(SymbolTable* parent);
 
-    void AddFunction(std::string name, llvm::Function* func);
+    void AddFunction(std::string name, Function* func);
     bool ContainsFunction(std::string name) const;
     // Gets the function. Returns null if not found
-    llvm::Function* GetFunction(std::string name) const;
+    Function* GetFunction(std::string name) const;
 
     void AddType(std::string name, LangType* type);
     bool ContainsType(std::string name) const;

@@ -1,4 +1,5 @@
 #include "AST/Function.h"
+
 #include "AST/Common.h"
 #include "AST/Statement.h"
 #include "TypeConverter.h"
@@ -16,7 +17,7 @@ public:
 };
 
 
-RULE(Function)
+RULE(FunctionRule)
 {
     Autoname(builder);
     builder.Add("func ", Identifier, '(', FunctionParameterList, ')', OptionalWhitespace, '{', OptionalWhitespace, StatementBlock, OptionalWhitespace, '}');
@@ -74,7 +75,7 @@ void FunctionNode::GatherSymbols(CompileContext& context)
 {
     // TODO: make this more safe and robust, check that function doesn't already exist
     auto nameNode = SafeGet<IdentifierNode>(0, "IdentifierNode");
-    funcName = nameNode->GetValue();
+    std::string funcName = nameNode->GetValue();
 
     auto paramListNode = SafeGet<FuncParamListNode>(1, "FuncParamListNode");
     if (paramListNode == nullptr)
@@ -83,15 +84,23 @@ void FunctionNode::GatherSymbols(CompileContext& context)
         return;
     }
 
-    std::vector<llvm::Type*> paramTypes;
+    std::vector<LangType*> paramTypes;
     paramListNode->GetParamTypes(paramTypes);
+    std::vector<std::string> paramNames;
+    paramListNode->GetParamNames(paramNames);
+    LangType* retType = context.symbolTable.GetType("void"); // TODO: make not all void
+
+    funcDefinition = new Function(funcName, retType, paramTypes, paramNames);
 
     std::cout << "Num Func Params: " << paramTypes.size() << std::endl;
 
+    std::vector<llvm::Type*> paramIRTypes;
+    funcDefinition->GetIRTypes(paramIRTypes);
+
     auto& manager = Spark::LLVMManager::Instance();
-    llvm::Type* voidType = Spark::TypeConverter::Get<void>();
-    auto signature = manager.GetFuncSignature(voidType, paramTypes);
-    funcDefinition = manager.DeclareFunction(funcName, signature);
+    auto signature = manager.GetFuncSignature(retType->GetIR(), paramIRTypes);
+    llvm::Function* definitionIR = manager.DeclareFunction(funcName, signature);
+    funcDefinition->SetIR(definitionIR);
 
     context.symbolTable.AddFunction(funcName, funcDefinition);
 
@@ -105,7 +114,7 @@ void FunctionNode::Generate(CompileContext& context)
 
     auto& manager = Spark::LLVMManager::Instance();
 
-    auto* bb = manager.Implement(funcDefinition);
+    auto* bb = manager.Implement(funcDefinition->GetIR());
 
     context.builder.SetInsertPoint(bb);
 
@@ -114,7 +123,7 @@ void FunctionNode::Generate(CompileContext& context)
     context.builder.CreateRetVoid();
 }
 
-void FuncParamListNode::GetParamTypes(std::vector<llvm::Type*>& vecOut)
+void FuncParamListNode::GetParamTypes(std::vector<LangType*>& vecOut)
 {
     // Case where there are no parameters
     if (customChildren.size() == 0)
@@ -146,10 +155,47 @@ void FuncParamListNode::GetParamTypes(std::vector<llvm::Type*>& vecOut)
         if (typenode == nullptr)
             continue;
 
-        std::cout << "push" << std::endl;
-        vecOut.push_back(typenode->GetIRType()->GetIR());
+        vecOut.push_back(typenode->GetIRType());
     }
 }
+
+void FuncParamListNode::GetParamNames(std::vector<std::string>& vecOut)
+{
+    // Case where there are no parameters
+    if (customChildren.size() == 0)
+        return;
+
+    vecOut.clear();
+
+    Ptr<FuncParamChain> chainNode = SafeGet<FuncParamChain>(0, "FuncParamChain");
+
+    if (chainNode == nullptr)
+    {
+        std::cerr << "Internal Error: Invalid parameter chain in FuncParamListNode" << std::endl;
+        return;
+    }
+
+    auto& nodes = chainNode->GetNodes();
+
+    for (auto param : nodes)
+    {
+        if (param->GetType() != "FuncParameterNode")
+        {
+            std::cerr << "Internal Error: invalid node type in parameter list" << std::endl;
+            continue;
+        }
+
+        Ptr<FuncParameterNode> p = PtrCast<FuncParameterNode>(param);
+
+        auto idnode = p->GetIdentifier();
+        if (idnode == nullptr)
+            continue;
+
+        vecOut.push_back(idnode->GetValue());
+    }
+}
+
+
 
 Ptr<IdentifierNode> FuncParameterNode::GetIdentifier() const
 {
