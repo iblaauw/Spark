@@ -12,11 +12,6 @@ CHARSET(OperatorChar)
     return c == '+' || c == '-' || c == '*' || c == '/';
 }
 
-CHARSET(NumberChar)
-{
-    return c >= '0' && c <= '9';
-}
-
 CHARSET(WhitespaceChar)
 {
     return c == ' ' || c == '\n' || c == '\r' || c == '\t';
@@ -49,12 +44,6 @@ RULE(Type)
     builder.AddString(Alpha);
 
     builder.SetNodeType<TypeNode>();
-}
-
-RULE(Number)
-{
-    Autoname(builder);
-    builder.AddString(NumberChar);
 }
 
 

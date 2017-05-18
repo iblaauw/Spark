@@ -49,7 +49,6 @@ void FuncCallNode::Process()
 
 Ptr<RValue> FuncCallNode::Evaluate(CompileContext& context)
 {
-    // TODO: make robust
     auto funcNameNode = SafeGet<IdentifierNode>(0, "IdentifierNode");
     std::string funcName = funcNameNode->GetValue();
 
@@ -71,7 +70,6 @@ Ptr<RValue> FuncCallNode::Evaluate(CompileContext& context)
 
     llvm::Function* funcDef = func->GetIR();
     std::vector<llvm::Value*> args;
-
     auto converter = [](Ptr<RValue> rv) { return rv->GetValue(); };
     ::Map(converter, argVals, args);
 

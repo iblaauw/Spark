@@ -32,13 +32,3 @@ public:
     LangType* GetType() const override { return type; }
 };
 
-class ErrorValue : public LValue
-{
-public:
-    // TODO: move this to a seperate Errors.h with more stuff. Also print an error message on creation
-    ErrorValue() {}
-    virtual llvm::Value* GetValue() const override { return nullptr; }
-    virtual LangType* GetType() const override { return nullptr; }
-    virtual void Assign(const RValue& value, CompileContext& context) const override {};
-};
-

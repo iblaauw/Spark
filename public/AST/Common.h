@@ -6,7 +6,6 @@ RULE(Whitespace);
 RULE(OptionalWhitespace);
 RULE(Identifier);
 RULE(Type);
-RULE(Number);
 
 class IdentifierNode : public StringValueNode
 {
