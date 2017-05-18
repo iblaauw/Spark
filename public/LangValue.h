@@ -26,8 +26,7 @@ private:
     llvm::Value* value;
     Ptr<LangType> type;
 public:
-    GeneralRValue(llvm::Value* value, Ptr<LangType> type) : value(value), type(type)
-    {}
+    GeneralRValue(llvm::Value* value, Ptr<LangType> type);
 
     llvm::Value* GetValue() const override { return value; }
     Ptr<LangType> GetType() const override { return type; }

@@ -121,6 +121,8 @@ void FunctionNode::GatherSymbols(CompileContext& context)
 
         llvm::Value* varIR = static_cast<llvm::Argument*>(iter);
         var->SetValue(varIR);
+
+        iter++;
     }
 
     // Recurse

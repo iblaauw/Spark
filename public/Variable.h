@@ -13,7 +13,7 @@ class Variable : public LValue
 public:
     Variable(std::string name, Ptr<LangType> type);
 
-    void SetValue(llvm::Value* value) { this->value = value; }
+    void SetValue(llvm::Value* value);
 
     llvm::Value* GetValue() const override { return value; }
     Ptr<LangType> GetType() const override { return type; }
