@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <functional>
 
 template <class T>
 using Ptr = std::shared_ptr<T>;
@@ -22,4 +23,13 @@ public:
     IterT end() const { return end; }
 };
 
+template <class T, class U, class V>
+void Map(V func, T& list, std::vector<U>& vecOut)
+{
+    vecOut.clear();
+    for (auto val : list)
+    {
+        vecOut.push_back(func(val));
+    }
+}
 

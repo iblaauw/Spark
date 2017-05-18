@@ -5,12 +5,38 @@
 #include "AST/Common.h"
 #include "AST/Expression.h"
 
+
+class FuncCallArgsChain : public ChainingNode
+{
+public:
+    FuncCallArgsChain(std::vector<NodePtr>& nodes) : ChainingNode(nodes) {}
+    std::string GetType() const override { return "FuncCallArgsChain"; }
+};
+
 RULE(FuncCall)
 {
     Autoname(builder);
-    builder.Add(Identifier, '(', Expression, ')');
+    builder.Add(Identifier, '(', FuncCallArgsList, ')');
 
     builder.SetNodeType<FuncCallNode>();
+}
+
+RULE(_FuncCallArgsChain)
+{
+    Autoname(builder);
+    builder.Add(Expression, OptionalWhitespace, ',', OptionalWhitespace, _FuncCallArgsChain);
+    builder.Add(Expression);
+
+    builder.SetNodeType<FuncCallArgsChain>();
+}
+
+RULE(FuncCallArgsList)
+{
+    Autoname(builder);
+    builder.Add(_FuncCallArgsChain);
+    builder.AddEmpty();
+
+    builder.SetNodeType<FuncCallArgsListNode>();
 }
 
 void FuncCallNode::Process()
@@ -19,38 +45,86 @@ void FuncCallNode::Process()
     CustomNode::Process();
 }
 
+
+
 Ptr<RValue> FuncCallNode::Evaluate(CompileContext& context)
 {
     // TODO: make robust
-    auto funcNameNode = PtrCast<IdentifierNode>(customChildren[0]);
+    auto funcNameNode = SafeGet<IdentifierNode>(0, "IdentifierNode");
     std::string funcName = funcNameNode->GetValue();
-
-    auto exprNode = customChildren[1];
-    Ptr<RValue> result = exprNode->Evaluate(context);
-
-    if (result == nullptr)
-    {
-        auto error = std::make_shared<ErrorValue>();
-        return PtrCast<RValue>(error);
-    }
 
     Function* func = context.symbolTable.GetFunction(funcName);
 
     if (func == nullptr)
     {
         std::cerr << "Error: a function named '" << funcName << "' could not be found." << std::endl;
-        auto error = std::make_shared<ErrorValue>();
-        return PtrCast<RValue>(error);
+        return nullptr;
     }
 
+    auto argsNode = SafeGet<FuncCallArgsListNode>(1, "FuncCallArgsListNode");
+    std::vector<Ptr<RValue>> argVals;
+
+    argsNode->EvalAll(context, argVals);
+
+    if (!IsCompatible(argVals, func))
+        return nullptr;
+
     llvm::Function* funcDef = func->GetIR();
+    std::vector<llvm::Value*> args;
 
-    std::vector<llvm::Value*> args { result->GetValue() };
-    llvm::Value* value = context.builder.CreateCall(funcDef, args, funcName + "_call");
-    LangType* retType = context.symbolTable.GetType("void");
+    auto converter = [](Ptr<RValue> rv) { return rv->GetValue(); };
+    ::Map(converter, argVals, args);
 
+    llvm::Value* value = context.builder.CreateCall(funcDef, args);
+
+    LangType* retType = func->ReturnType();
     auto ptrVal = std::make_shared<GeneralRValue>(value, retType);
     return PtrCast<RValue>(ptrVal);
 }
+
+bool FuncCallNode::IsCompatible(const std::vector<Ptr<RValue>>& args, Function* func)
+{
+    const std::vector<LangType*>& paramTypes = func->ParameterTypes();
+    if (args.size() != paramTypes.size())
+    {
+        std::cerr << "Error: wrong number of arguments to call function '" << func->GetName() << "'" << std::endl;
+        std::cerr << "Expected " << paramTypes.size() << " arguments but recieved " << args.size() << std::endl;
+        return false;
+    }
+
+    auto converter = [](Ptr<RValue> rv) { return rv->GetType(); };
+    std::vector<LangType*> argTypes;
+    ::Map(converter, args, argTypes);
+
+    for (unsigned int i = 0; i < paramTypes.size(); i++)
+    {
+        LangType* a = argTypes[i];
+        LangType* p = paramTypes[i];
+
+        if (!p->IsAssignableFrom(*a))
+        {
+            std::cerr << "Error: invalid argument " << i << " for calling '" << func->GetName() << "'" << std::endl;
+            std::cerr << "Cannot convert from type '" << a->GetName() << "' to '" << p->GetName() << "'" << std::endl;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+void FuncCallArgsListNode::EvalAll(CompileContext& context, std::vector<Ptr<RValue>>& evalOut)
+{
+    evalOut.clear();
+    for (auto child : customChildren)
+    {
+        auto val = child->Evaluate(context);
+        if (val != nullptr)
+        {
+            evalOut.push_back(val);
+        }
+    }
+}
+
 
 

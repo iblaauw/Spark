@@ -32,6 +32,8 @@ namespace Spark
 
         std::string GetName() const { return name; }
         void SetName(std::string newname) { name = newname; }
+
+        const std::vector<NodePtr>& GetChildren() const { return children; }
     };
 
     class CharNode : public Node

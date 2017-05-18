@@ -110,3 +110,21 @@ void ChainingNode::Collapse(std::vector<Ptr<CustomNode>>& values)
     realChild->Collapse(values);
 }
 
+void AbsorbingNode::Process()
+{
+    CustomNode::Process();
+
+    if (children.size() != 1)
+        return;
+
+    NodePtr ptr = children[0];
+    children = ptr->GetChildren();
+
+    if (customChildren.size() != 1)
+        return;
+
+    auto cptr = customChildren[0];
+    customChildren = cptr->GetCustom();
+}
+
+

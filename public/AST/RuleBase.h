@@ -42,6 +42,8 @@ public:
 
     virtual Ptr<RValue> Evaluate(CompileContext& context);
 
+    const std::vector<Ptr<CustomNode>>& GetCustom() const { return customChildren; }
+
 private:
     void Collect();
 protected:
@@ -98,6 +100,15 @@ public:
     virtual void Process() override;
 private:
     void Collapse(std::vector<Ptr<CustomNode>>& vals);
+};
+
+class AbsorbingNode : public CustomNode
+{
+public:
+    AbsorbingNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    virtual std::string GetType() const = 0;
+
+    virtual void Process() override;
 };
 
 

@@ -3,6 +3,7 @@
 #include "AST/RuleBase.h"
 
 RULE(FuncCall);
+RULE(FuncCallArgsList);
 
 
 class FuncCallNode : public CustomNode
@@ -13,6 +14,18 @@ public:
     void Process() override;
 
     Ptr<RValue> Evaluate(CompileContext& context) override;
+
+private:
+    bool IsCompatible(const std::vector<Ptr<RValue>>& args, Function* func);
+};
+
+class FuncCallArgsListNode : public AbsorbingNode
+{
+public:
+    FuncCallArgsListNode(std::vector<NodePtr>& nodes) : AbsorbingNode(nodes) {}
+    std::string GetType() const override { return "FuncCallArgsListNode"; }
+
+    void EvalAll(CompileContext& context, std::vector<Ptr<RValue>>& evalOut);
 };
 
 
