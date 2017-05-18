@@ -28,7 +28,7 @@ public:
         table[name] = val;
     }
 
-    void Contains(std::string name) const
+    bool Contains(std::string name) const
     {
         if (table.count(name) > 0)
             return true;

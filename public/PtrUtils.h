@@ -33,3 +33,18 @@ void Map(V func, T& list, std::vector<U>& vecOut)
     }
 }
 
+template <class U, class T>
+void Filter(U func, std::vector<T>& vec)
+{
+    std::vector<T> temp;
+    temp.swap(vec);
+
+    for (auto val : temp)
+    {
+        if (func(val))
+        {
+            vec.push_back(val);
+        }
+    }
+}
+

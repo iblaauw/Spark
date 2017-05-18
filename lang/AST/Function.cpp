@@ -12,8 +12,6 @@ class FuncParamChain : public ChainingNode
 public:
     FuncParamChain(std::vector<NodePtr>& nodes) : ChainingNode(nodes) {}
     std::string GetType() const override { return "FuncParamChain"; }
-
-    const std::vector<Ptr<CustomNode>>& GetNodes() const { return customChildren; }
 };
 
 
@@ -77,6 +75,12 @@ void FunctionNode::GatherSymbols(CompileContext& context)
     auto nameNode = SafeGet<IdentifierNode>(0, "IdentifierNode");
     std::string funcName = nameNode->GetValue();
 
+    if (context.symbolTable.functions.Contains(funcName))
+    {
+        std::cerr << "Error: a function with the name '" << funcName << "' already exists" << std::endl;
+        return;
+    }
+
     auto paramListNode = SafeGet<FuncParamListNode>(1, "FuncParamListNode");
     if (paramListNode == nullptr)
     {
@@ -84,15 +88,15 @@ void FunctionNode::GatherSymbols(CompileContext& context)
         return;
     }
 
+    // Get types and names
     std::vector<Ptr<LangType>> paramTypes;
     paramListNode->GetParamTypes(paramTypes);
     std::vector<std::string> paramNames;
     paramListNode->GetParamNames(paramNames);
     Ptr<LangType> retType = context.symbolTable.types.Get("void"); // TODO: make not all void
 
+    // Create the actual function
     funcDefinition = std::make_shared<Function>(funcName, retType, paramTypes, paramNames);
-
-    std::cout << "Num Func Params: " << paramTypes.size() << std::endl;
 
     std::vector<llvm::Type*> paramIRTypes;
     funcDefinition->GetIRTypes(paramIRTypes);
@@ -103,6 +107,21 @@ void FunctionNode::GatherSymbols(CompileContext& context)
     funcDefinition->SetIR(definitionIR);
 
     context.symbolTable.functions.Add(funcName, funcDefinition);
+
+    // Create the function variables
+    // TODO: this is all really unsafe...
+    auto iter = definitionIR->arg_begin();
+    for (unsigned int i = 0; i < paramTypes.size(); i++)
+    {
+        Ptr<LangType> type = paramTypes[i];
+        std::string name = paramNames[i];
+
+        Ptr<Variable> var = std::make_shared<Variable>(name, type);
+        context.symbolTable.variables.Add(name, var);
+
+        llvm::Value* varIR = static_cast<llvm::Argument*>(iter);
+        var->SetValue(varIR);
+    }
 
     // Recurse
     CustomNode::GatherSymbols(context);
@@ -121,78 +140,6 @@ void FunctionNode::Generate(CompileContext& context)
     CustomNode::Generate(context);
 
     context.builder.CreateRetVoid();
-}
-
-void FuncParamListNode::GetParamTypes(std::vector<Ptr<LangType>>& vecOut)
-{
-    // Case where there are no parameters
-    if (customChildren.size() == 0)
-        return;
-
-    vecOut.clear();
-
-    Ptr<FuncParamChain> chainNode = SafeGet<FuncParamChain>(0, "FuncParamChain");
-
-    if (chainNode == nullptr)
-    {
-        std::cerr << "Internal Error: Invalid parameter chain in FuncParamListNode" << std::endl;
-        return;
-    }
-
-    auto& nodes = chainNode->GetNodes();
-
-    for (auto param : nodes)
-    {
-        if (param->GetType() != "FuncParameterNode")
-        {
-            std::cerr << "Internal Error: invalid node type in parameter list" << std::endl;
-            continue;
-        }
-
-        Ptr<FuncParameterNode> p = PtrCast<FuncParameterNode>(param);
-
-        auto typenode = p->GetParamType();
-        if (typenode == nullptr)
-            continue;
-
-        vecOut.push_back(typenode->GetIRType());
-    }
-}
-
-void FuncParamListNode::GetParamNames(std::vector<std::string>& vecOut)
-{
-    // Case where there are no parameters
-    if (customChildren.size() == 0)
-        return;
-
-    vecOut.clear();
-
-    Ptr<FuncParamChain> chainNode = SafeGet<FuncParamChain>(0, "FuncParamChain");
-
-    if (chainNode == nullptr)
-    {
-        std::cerr << "Internal Error: Invalid parameter chain in FuncParamListNode" << std::endl;
-        return;
-    }
-
-    auto& nodes = chainNode->GetNodes();
-
-    for (auto param : nodes)
-    {
-        if (param->GetType() != "FuncParameterNode")
-        {
-            std::cerr << "Internal Error: invalid node type in parameter list" << std::endl;
-            continue;
-        }
-
-        Ptr<FuncParameterNode> p = PtrCast<FuncParameterNode>(param);
-
-        auto idnode = p->GetIdentifier();
-        if (idnode == nullptr)
-            continue;
-
-        vecOut.push_back(idnode->GetValue());
-    }
 }
 
 
@@ -216,3 +163,53 @@ Ptr<TypeNode> FuncParameterNode::GetParamType() const
     }
     return val;
 }
+
+void FuncParamListNode::Process()
+{
+    AbsorbingNode::Process();
+
+    for (auto param : customChildren)
+    {
+        if (param->GetType() != "FuncParameterNode")
+        {
+            std::cerr << "Internal Error: invalid node type in parameter list" << std::endl;
+            continue;
+        }
+
+        Ptr<FuncParameterNode> p = PtrCast<FuncParameterNode>(param);
+        this->params.push_back(p);
+    }
+}
+
+void FuncParamListNode::GetParamTypes(std::vector<Ptr<LangType>>& vecOut)
+{
+    auto converter = [](Ptr<FuncParameterNode> p) -> Ptr<LangType> {
+        Ptr<TypeNode> type = p->GetParamType();
+        if (type == nullptr) return nullptr;
+        return type->GetIRType();
+    };
+
+    auto filter = [](Ptr<LangType> p) { return p != nullptr; };
+
+    ::Map(converter, params, vecOut);
+    ::Filter(filter, vecOut);
+}
+
+void FuncParamListNode::GetParamNames(std::vector<std::string>& vecOut)
+{
+    auto converter = [](Ptr<FuncParameterNode> p) -> Ptr<IdentifierNode> {
+        Ptr<IdentifierNode> id = p->GetIdentifier();
+        if (id == nullptr) return nullptr;
+        return id;
+    };
+
+    auto filter = [](Ptr<IdentifierNode> p) { return p != nullptr; };
+
+    auto converter2 = [](Ptr<IdentifierNode> p) { return p->GetValue(); };
+
+    std::vector<Ptr<IdentifierNode>> idNodes;
+    ::Map(converter, params, idNodes);
+    ::Filter(filter, idNodes);
+    ::Map(converter2, idNodes, vecOut);
+}
+
