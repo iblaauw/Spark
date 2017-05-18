@@ -3,13 +3,14 @@
 #include "llvm/IR/Value.h"
 
 #include "LangType.h"
+#include "PtrUtils.h"
 
 class RValue
 {
 public:
     virtual bool IsLValue() const { return false; }
     virtual llvm::Value* GetValue() const = 0;
-    virtual LangType* GetType() const = 0;
+    virtual Ptr<LangType> GetType() const = 0;
 };
 
 class LValue : public RValue
@@ -23,12 +24,12 @@ class GeneralRValue : public RValue
 {
 private:
     llvm::Value* value;
-    LangType* type;
+    Ptr<LangType> type;
 public:
-    GeneralRValue(llvm::Value* value, LangType* type) : value(value), type(type)
+    GeneralRValue(llvm::Value* value, Ptr<LangType> type) : value(value), type(type)
     {}
 
     llvm::Value* GetValue() const override { return value; }
-    LangType* GetType() const override { return type; }
+    Ptr<LangType> GetType() const override { return type; }
 };
 

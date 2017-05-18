@@ -52,7 +52,7 @@ Ptr<RValue> FuncCallNode::Evaluate(CompileContext& context)
     auto funcNameNode = SafeGet<IdentifierNode>(0, "IdentifierNode");
     std::string funcName = funcNameNode->GetValue();
 
-    Function* func = context.symbolTable.GetFunction(funcName);
+    Ptr<Function> func = context.symbolTable.functions.Get(funcName);
 
     if (func == nullptr)
     {
@@ -75,14 +75,14 @@ Ptr<RValue> FuncCallNode::Evaluate(CompileContext& context)
 
     llvm::Value* value = context.builder.CreateCall(funcDef, args);
 
-    LangType* retType = func->ReturnType();
+    Ptr<LangType> retType = func->ReturnType();
     auto ptrVal = std::make_shared<GeneralRValue>(value, retType);
     return PtrCast<RValue>(ptrVal);
 }
 
-bool FuncCallNode::IsCompatible(const std::vector<Ptr<RValue>>& args, Function* func)
+bool FuncCallNode::IsCompatible(const std::vector<Ptr<RValue>>& args, Ptr<Function> func)
 {
-    const std::vector<LangType*>& paramTypes = func->ParameterTypes();
+    const auto& paramTypes = func->ParameterTypes();
     if (args.size() != paramTypes.size())
     {
         std::cerr << "Error: wrong number of arguments to call function '" << func->GetName() << "'" << std::endl;
@@ -91,13 +91,13 @@ bool FuncCallNode::IsCompatible(const std::vector<Ptr<RValue>>& args, Function* 
     }
 
     auto converter = [](Ptr<RValue> rv) { return rv->GetType(); };
-    std::vector<LangType*> argTypes;
+    std::vector<Ptr<LangType>> argTypes;
     ::Map(converter, args, argTypes);
 
     for (unsigned int i = 0; i < paramTypes.size(); i++)
     {
-        LangType* a = argTypes[i];
-        LangType* p = paramTypes[i];
+        Ptr<LangType> a = argTypes[i];
+        Ptr<LangType> p = paramTypes[i];
 
         if (!p->IsAssignableFrom(*a))
         {

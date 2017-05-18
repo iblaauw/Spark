@@ -16,7 +16,7 @@ public:
     Ptr<RValue> Evaluate(CompileContext& context) override;
 
 private:
-    bool IsCompatible(const std::vector<Ptr<RValue>>& args, Function* func);
+    bool IsCompatible(const std::vector<Ptr<RValue>>& args, Ptr<Function> func);
 };
 
 class FuncCallArgsListNode : public AbsorbingNode

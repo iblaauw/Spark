@@ -3,6 +3,7 @@
 #include "AST/StringLiteral.h"
 #include "AST/NumberLiteral.h"
 #include "AST/FuncCall.h"
+#include "AST/VariableExpression.h"
 
 
 RULE(Expression)
@@ -11,6 +12,7 @@ RULE(Expression)
     builder.Add(NumberLiteral);
     builder.Add(StringLiteral);
     builder.Add(FuncCall);
+    builder.Add(VariableExpression);
 
     builder.SetNodeType<ExpressionNode>();
 }

@@ -2,7 +2,9 @@
 
 #include <iostream>
 
-Variable::Variable(std::string name, LangType* type) : name(name), type(type)
+#include "CompileContext.h"
+
+Variable::Variable(std::string name, Ptr<LangType> type) : name(name), type(type)
 {}
 
 void Variable::Assign(const RValue& newValue, CompileContext& context) const

@@ -84,13 +84,13 @@ void FunctionNode::GatherSymbols(CompileContext& context)
         return;
     }
 
-    std::vector<LangType*> paramTypes;
+    std::vector<Ptr<LangType>> paramTypes;
     paramListNode->GetParamTypes(paramTypes);
     std::vector<std::string> paramNames;
     paramListNode->GetParamNames(paramNames);
-    LangType* retType = context.symbolTable.GetType("void"); // TODO: make not all void
+    Ptr<LangType> retType = context.symbolTable.types.Get("void"); // TODO: make not all void
 
-    funcDefinition = new Function(funcName, retType, paramTypes, paramNames);
+    funcDefinition = std::make_shared<Function>(funcName, retType, paramTypes, paramNames);
 
     std::cout << "Num Func Params: " << paramTypes.size() << std::endl;
 
@@ -102,7 +102,7 @@ void FunctionNode::GatherSymbols(CompileContext& context)
     llvm::Function* definitionIR = manager.DeclareFunction(funcName, signature);
     funcDefinition->SetIR(definitionIR);
 
-    context.symbolTable.AddFunction(funcName, funcDefinition);
+    context.symbolTable.functions.Add(funcName, funcDefinition);
 
     // Recurse
     CustomNode::GatherSymbols(context);
@@ -123,7 +123,7 @@ void FunctionNode::Generate(CompileContext& context)
     context.builder.CreateRetVoid();
 }
 
-void FuncParamListNode::GetParamTypes(std::vector<LangType*>& vecOut)
+void FuncParamListNode::GetParamTypes(std::vector<Ptr<LangType>>& vecOut)
 {
     // Case where there are no parameters
     if (customChildren.size() == 0)

@@ -51,12 +51,12 @@ void TypeNode::VerifyTypes(CompileContext& context)
 {
     auto& symbols = context.symbolTable;
     std::string val = GetValue();
-    type = symbols.GetType(val);
+    type = symbols.types.Get(val);
 
     if (type == nullptr)
     {
         std::cerr << "Error: unknown type '" << val << "'" << std::endl;
-        type = symbols.GetType("int");
+        type = symbols.types.Get("int");
     }
 }
 

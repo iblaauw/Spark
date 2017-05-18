@@ -6,14 +6,14 @@
 
 llvm::Function* DeclarePrintf(SymbolTable& symbolTable)
 {
-    LangType* intType = symbolTable.GetType("int");
-    LangType* stringType = symbolTable.GetType("string");
+    Ptr<LangType> intType = symbolTable.types.Get("int");
+    Ptr<LangType> stringType = symbolTable.types.Get("string");
 
     auto& manager = Spark::LLVMManager::Instance();
 
-    std::vector<LangType*> args { stringType };
+    std::vector<Ptr<LangType>> args { stringType };
     std::vector<std::string> paramNames { "value" };
-    Function* langfunc = new Function("printf", intType, args, paramNames);
+    Ptr<Function> langfunc = std::make_shared<Function>("printf", intType, args, paramNames);
 
     std::vector<llvm::Type*> argsIR;
     langfunc->GetIRTypes(argsIR);
@@ -23,22 +23,22 @@ llvm::Function* DeclarePrintf(SymbolTable& symbolTable)
 
     langfunc->SetIR(func);
 
-    symbolTable.AddFunction("print", langfunc);
+    symbolTable.functions.Add("print", langfunc);
     return func;
 }
 
 template <class T>
-LangType* _CreateType(std::string name)
+Ptr<LangType> _CreateType(std::string name)
 {
     llvm::Type* type = Spark::TypeConverter::Get<T>();
-    LangType* lt = new LangType(name);
+    Ptr<LangType> lt = std::make_shared<LangType>(name);
     lt->SetIR(type);
     return lt;
 }
 
-LangType* _CreateStringType()
+Ptr<LangType> _CreateStringType()
 {
-    LangType* lt = new LangType("string");
+    Ptr<LangType> lt = std::make_shared<LangType>("string");
 
     llvm::Type* type = Spark::TypeConverter::Get<char>();
     type = type->getPointerTo();
@@ -50,22 +50,22 @@ LangType* _CreateStringType()
 
 void AddBuiltinTypes(SymbolTable& symbolTable)
 {
-    LangType* type;
+    Ptr<LangType> type;
 
     type = _CreateType<void>("void");
-    symbolTable.AddType(type->GetName(), type);
+    symbolTable.types.Add(type->GetName(), type);
 
     type = _CreateType<int>("int");
-    symbolTable.AddType(type->GetName(), type);
+    symbolTable.types.Add(type->GetName(), type);
 
     type = _CreateType<char>("char");
-    symbolTable.AddType(type->GetName(), type);
+    symbolTable.types.Add(type->GetName(), type);
 
     type = _CreateType<bool>("bool");
-    symbolTable.AddType(type->GetName(), type);
+    symbolTable.types.Add(type->GetName(), type);
 
     type = _CreateStringType();
-    symbolTable.AddType(type->GetName(), type);
+    symbolTable.types.Add(type->GetName(), type);
 }
 
 

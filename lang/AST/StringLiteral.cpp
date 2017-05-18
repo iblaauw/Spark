@@ -49,7 +49,7 @@ Ptr<RValue> StringLiteralNode::Evaluate(CompileContext& context)
     auto zero = Spark::TypeConverter::Create<int>(0);
     std::vector<llvm::Value*> indices { zero, zero };
 
-    LangType* type = context.symbolTable.GetType("string");
+    Ptr<LangType> type = context.symbolTable.types.Get("string");
     llvm::Value* instruction = context.builder.CreateGEP(gvar, indices, "str_literal");
     auto ptrVal = std::make_shared<GeneralRValue>(instruction, type);
     return PtrCast<RValue>(ptrVal);
