@@ -19,8 +19,8 @@ public:
     llvm::Type* GetIR() const { return type; }
     void SetIR(llvm::Type* type) { this->type = type; }
 
-    virtual bool IsAssignableFrom(LangType& otherType) const;
-    virtual void InsertConversion(LangType& fromType, CompileContext& context) const;
+    bool IsAssignableFrom(LangType& otherType) const;
+    void InsertConversion(LangType& fromType, CompileContext& context) const;
 
     // TODO: add inheritance and const-ness
 };

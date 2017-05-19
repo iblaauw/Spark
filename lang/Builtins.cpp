@@ -6,14 +6,14 @@
 
 llvm::Function* DeclarePrintf(SymbolTable& symbolTable)
 {
-    Ptr<LangType> intType = symbolTable.types.Get("int");
-    Ptr<LangType> stringType = symbolTable.types.Get("string");
+    LangType* intType = symbolTable.types.Get("int");
+    LangType* stringType = symbolTable.types.Get("string");
 
     auto& manager = Spark::LLVMManager::Instance();
 
-    std::vector<Ptr<LangType>> args { stringType };
+    std::vector<LangType*> args { stringType };
     std::vector<std::string> paramNames { "value" };
-    Ptr<Function> langfunc = std::make_shared<Function>("printf", intType, args, paramNames);
+    Function* langfunc = symbolTable.functions.Create("print", "printf", intType, args, paramNames);
 
     std::vector<llvm::Type*> argsIR;
     langfunc->GetIRTypes(argsIR);
@@ -23,22 +23,21 @@ llvm::Function* DeclarePrintf(SymbolTable& symbolTable)
 
     langfunc->SetIR(func);
 
-    symbolTable.functions.Add("print", langfunc);
     return func;
 }
 
 template <class T>
-Ptr<LangType> _CreateType(std::string name)
+LangType* _CreateType(std::string name)
 {
     llvm::Type* type = Spark::TypeConverter::Get<T>();
-    Ptr<LangType> lt = std::make_shared<LangType>(name);
+    LangType* lt = new LangType(name);
     lt->SetIR(type);
     return lt;
 }
 
-Ptr<LangType> _CreateStringType()
+LangType* _CreateStringType()
 {
-    Ptr<LangType> lt = std::make_shared<LangType>("string");
+    LangType* lt = new LangType("string");
 
     llvm::Type* type = Spark::TypeConverter::Get<char>();
     type = type->getPointerTo();
@@ -50,7 +49,7 @@ Ptr<LangType> _CreateStringType()
 
 void AddBuiltinTypes(SymbolTable& symbolTable)
 {
-    Ptr<LangType> type;
+    LangType* type;
 
     type = _CreateType<void>("void");
     symbolTable.types.Add(type->GetName(), type);

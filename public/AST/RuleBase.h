@@ -8,6 +8,7 @@
 #include "Node.h"
 #include "CompileContext.h"
 #include "LangValue.h"
+#include "UnknownPtr.h"
 
 #include <iostream>
 
@@ -40,7 +41,7 @@ public:
 
     virtual void Generate(CompileContext& context);
 
-    virtual Ptr<RValue> Evaluate(CompileContext& context);
+    virtual UnknownPtr<RValue> Evaluate(CompileContext& context);
 
     const std::vector<Ptr<CustomNode>>& GetCustom() const { return customChildren; }
 
@@ -70,12 +71,6 @@ protected:
 
         return PtrCast<T>(child);
     }
-
-    /*template <class T>
-    Ptr<T> SafeGet(int index, const char* type) const
-    {
-        return SafeGet<T>(index, std::string(type));
-    }*/
 };
 
 class StringValueNode : public CustomNode

@@ -26,11 +26,12 @@ void NumberLiteralNode::Process()
     this->value = std::stoi(value);
 }
 
-Ptr<RValue> NumberLiteralNode::Evaluate(CompileContext& context)
+UnknownPtr<RValue> NumberLiteralNode::Evaluate(CompileContext& context)
 {
-    Ptr<LangType> intType = context.symbolTable.types.Get("int");
+    LangType* intType = context.symbolTable.types.Get("int");
     llvm::Value* val = Spark::TypeConverter::Create<int>(this->value);
-    return std::make_shared<GeneralRValue>(val, intType);
+    auto result = std::make_shared<GeneralRValue>(val, intType);
+    return PtrCast<RValue>(result);
 }
 
 

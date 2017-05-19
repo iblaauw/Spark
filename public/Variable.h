@@ -8,15 +8,16 @@ class CompileContext;
 class Variable : public LValue
 {
     std::string name;
-    Ptr<LangType> type;
+    LangType* type;
     llvm::Value* value;
 public:
-    Variable(std::string name, Ptr<LangType> type);
+    Variable(std::string name, LangType* type);
+    virtual ~Variable() {}
 
     void SetValue(llvm::Value* value);
 
     llvm::Value* GetValue() const override { return value; }
-    Ptr<LangType> GetType() const override { return type; }
+    LangType* GetType() const override { return type; }
     void Assign(const RValue& newValue, CompileContext& context) const override;
 };
 

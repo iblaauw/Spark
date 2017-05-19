@@ -47,12 +47,12 @@ void FuncCallNode::Process()
 
 
 
-Ptr<RValue> FuncCallNode::Evaluate(CompileContext& context)
+UnknownPtr<RValue> FuncCallNode::Evaluate(CompileContext& context)
 {
     auto funcNameNode = SafeGet<IdentifierNode>(0, "IdentifierNode");
     std::string funcName = funcNameNode->GetValue();
 
-    Ptr<Function> func = context.symbolTable.functions.Get(funcName);
+    Function* func = context.symbolTable.functions.Get(funcName);
 
     if (func == nullptr)
     {
@@ -61,7 +61,7 @@ Ptr<RValue> FuncCallNode::Evaluate(CompileContext& context)
     }
 
     auto argsNode = SafeGet<FuncCallArgsListNode>(1, "FuncCallArgsListNode");
-    std::vector<Ptr<RValue>> argVals;
+    std::vector<UnknownPtr<RValue>> argVals;
 
     argsNode->EvalAll(context, argVals);
 
@@ -70,17 +70,17 @@ Ptr<RValue> FuncCallNode::Evaluate(CompileContext& context)
 
     llvm::Function* funcDef = func->GetIR();
     std::vector<llvm::Value*> args;
-    auto converter = [](Ptr<RValue> rv) { return rv->GetValue(); };
+    auto converter = [](UnknownPtr<RValue> rv) { return rv->GetValue(); };
     ::Map(converter, argVals, args);
 
     llvm::Value* value = context.builder.CreateCall(funcDef, args);
 
-    Ptr<LangType> retType = func->ReturnType();
+    LangType* retType = func->ReturnType();
     auto ptrVal = std::make_shared<GeneralRValue>(value, retType);
     return PtrCast<RValue>(ptrVal);
 }
 
-bool FuncCallNode::IsCompatible(const std::vector<Ptr<RValue>>& args, Ptr<Function> func)
+bool FuncCallNode::IsCompatible(const std::vector<UnknownPtr<RValue>>& args, Function* func)
 {
     const auto& paramTypes = func->ParameterTypes();
     if (args.size() != paramTypes.size())
@@ -90,14 +90,14 @@ bool FuncCallNode::IsCompatible(const std::vector<Ptr<RValue>>& args, Ptr<Functi
         return false;
     }
 
-    auto converter = [](Ptr<RValue> rv) { return rv->GetType(); };
-    std::vector<Ptr<LangType>> argTypes;
+    auto converter = [](UnknownPtr<RValue> rv) { return rv->GetType(); };
+    std::vector<LangType*> argTypes;
     ::Map(converter, args, argTypes);
 
     for (unsigned int i = 0; i < paramTypes.size(); i++)
     {
-        Ptr<LangType> a = argTypes[i];
-        Ptr<LangType> p = paramTypes[i];
+        LangType* a = argTypes[i];
+        LangType* p = paramTypes[i];
 
         if (!p->IsAssignableFrom(*a))
         {
@@ -111,7 +111,7 @@ bool FuncCallNode::IsCompatible(const std::vector<Ptr<RValue>>& args, Ptr<Functi
 }
 
 
-void FuncCallArgsListNode::EvalAll(CompileContext& context, std::vector<Ptr<RValue>>& evalOut)
+void FuncCallArgsListNode::EvalAll(CompileContext& context, std::vector<UnknownPtr<RValue>>& evalOut)
 {
     evalOut.clear();
     for (auto child : customChildren)

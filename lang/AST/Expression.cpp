@@ -17,7 +17,7 @@ RULE(Expression)
     builder.SetNodeType<ExpressionNode>();
 }
 
-Ptr<RValue> ExpressionNode::Evaluate(CompileContext& context)
+UnknownPtr<RValue> ExpressionNode::Evaluate(CompileContext& context)
 {
     if (customChildren.size() == 0)
     {

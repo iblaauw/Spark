@@ -89,14 +89,14 @@ void FunctionNode::GatherSymbols(CompileContext& context)
     }
 
     // Get types and names
-    std::vector<Ptr<LangType>> paramTypes;
+    std::vector<LangType*> paramTypes;
     paramListNode->GetParamTypes(paramTypes);
     std::vector<std::string> paramNames;
     paramListNode->GetParamNames(paramNames);
-    Ptr<LangType> retType = context.symbolTable.types.Get("void"); // TODO: make not all void
+    LangType* retType = context.symbolTable.types.Get("void"); // TODO: make not all void
 
     // Create the actual function
-    funcDefinition = std::make_shared<Function>(funcName, retType, paramTypes, paramNames);
+    funcDefinition = context.symbolTable.functions.Create(funcName, funcName, retType, paramTypes, paramNames);
 
     std::vector<llvm::Type*> paramIRTypes;
     funcDefinition->GetIRTypes(paramIRTypes);
@@ -106,18 +106,15 @@ void FunctionNode::GatherSymbols(CompileContext& context)
     llvm::Function* definitionIR = manager.DeclareFunction(funcName, signature);
     funcDefinition->SetIR(definitionIR);
 
-    context.symbolTable.functions.Add(funcName, funcDefinition);
-
     // Create the function variables
     // TODO: this is all really unsafe...
     auto iter = definitionIR->arg_begin();
     for (unsigned int i = 0; i < paramTypes.size(); i++)
     {
-        Ptr<LangType> type = paramTypes[i];
+        LangType* type = paramTypes[i];
         std::string name = paramNames[i];
 
-        Ptr<Variable> var = std::make_shared<Variable>(name, type);
-        context.symbolTable.variables.Add(name, var);
+        Variable* var = context.symbolTable.variables.Create(name, name, type);
 
         llvm::Value* varIR = static_cast<llvm::Argument*>(iter);
         var->SetValue(varIR);
@@ -183,15 +180,15 @@ void FuncParamListNode::Process()
     }
 }
 
-void FuncParamListNode::GetParamTypes(std::vector<Ptr<LangType>>& vecOut)
+void FuncParamListNode::GetParamTypes(std::vector<LangType*>& vecOut)
 {
-    auto converter = [](Ptr<FuncParameterNode> p) -> Ptr<LangType> {
+    auto converter = [](Ptr<FuncParameterNode> p) -> LangType* {
         Ptr<TypeNode> type = p->GetParamType();
         if (type == nullptr) return nullptr;
         return type->GetIRType();
     };
 
-    auto filter = [](Ptr<LangType> p) { return p != nullptr; };
+    auto filter = [](LangType* p) { return p != nullptr; };
 
     ::Map(converter, params, vecOut);
     ::Filter(filter, vecOut);

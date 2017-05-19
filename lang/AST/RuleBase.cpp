@@ -27,7 +27,7 @@ void CustomNode::Generate(CompileContext& context)
     Map([&](Ptr<CustomNode> c) { c->Generate(context); });
 }
 
-Ptr<RValue> CustomNode::Evaluate(CompileContext& context)
+UnknownPtr<RValue> CustomNode::Evaluate(CompileContext& context)
 {
     std::cerr << "Error: node '" << name << "' cannot be evaluated." << std::endl;
     return nullptr;

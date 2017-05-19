@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-GeneralRValue::GeneralRValue(llvm::Value* value, Ptr<LangType> type)
+GeneralRValue::GeneralRValue(llvm::Value* value, LangType* type)
     : value(value), type(type)
 {
     if (value->getType() != type->GetIR())

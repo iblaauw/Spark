@@ -11,7 +11,7 @@ RULE(FunctionParameter);
 class FunctionNode : public CustomNode
 {
 private:
-    Ptr<Function> funcDefinition;
+    Function* funcDefinition;
 public:
     FunctionNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
     std::string GetType() const override { return "FunctionNode"; }
@@ -39,7 +39,7 @@ public:
     std::string GetType() const override { return "FuncParamListNode"; }
     void Process() override;
 
-    void GetParamTypes(std::vector<Ptr<LangType>>& vecOut);
+    void GetParamTypes(std::vector<LangType*>& vecOut);
     void GetParamNames(std::vector<std::string>& vecOut);
 };
 

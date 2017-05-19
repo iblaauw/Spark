@@ -13,7 +13,7 @@ public:
     std::string GetType() const override { return "StringLiteralNode"; }
 
     void Process() override;
-    Ptr<RValue> Evaluate(CompileContext& context) override;
+    UnknownPtr<RValue> Evaluate(CompileContext& context) override;
 
     std::string Get() const { return literal; }
 };

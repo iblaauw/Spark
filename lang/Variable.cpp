@@ -4,7 +4,7 @@
 
 #include "CompileContext.h"
 
-Variable::Variable(std::string name, Ptr<LangType> type) : name(name), type(type)
+Variable::Variable(std::string name, LangType* type) : name(name), type(type)
 {}
 
 

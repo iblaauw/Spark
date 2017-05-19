@@ -17,13 +17,13 @@ public:
 class TypeNode : public StringValueNode
 {
 private:
-    Ptr<LangType> type;
+    LangType* type;
 public:
     TypeNode(std::vector<NodePtr>& nodes) : StringValueNode(nodes) {}
     std::string GetType() const override { return "TypeNode"; }
 
     virtual void VerifyTypes(CompileContext& context) override;
 
-    Ptr<LangType> GetIRType() const { return type; }
+    LangType* GetIRType() const { return type; }
 };
 
