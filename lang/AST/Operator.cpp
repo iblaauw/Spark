@@ -7,8 +7,8 @@ RULE(Operator)
     Autoname(builder);
     builder.Add("+");
     builder.Add("-");
-    //builder.Add("*");
-    //builder.Add("/");
+    builder.Add("*");
+    builder.Add("/");
 
     builder.SetNodeType<OperatorNode>();
 }
@@ -20,19 +20,8 @@ public:
     std::function<llvm::Value*(llvm::Value*, llvm::Value*, CompileContext&)> value;
 };
 
-
-static LangType* Plus(LangType* a, LangType* b, CompileContext& context)
+static LangType* IntOnly(LangType* a, LangType* b, CompileContext& context)
 {
-    // For now only supporting int addition
-    LangType* intType = context.symbolTable.types.Get("int");
-    if (a != intType || b != intType)
-        return nullptr;
-    return intType;
-}
-
-static LangType* Subtract(LangType* a, LangType* b, CompileContext& context)
-{
-    // For now only supporting int subtraction
     LangType* intType = context.symbolTable.types.Get("int");
     if (a != intType || b != intType)
         return nullptr;
@@ -41,14 +30,22 @@ static LangType* Subtract(LangType* a, LangType* b, CompileContext& context)
 
 static llvm::Value* PlusVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
 {
-    std::cerr << "Not Implemented" << std::endl;
-    return nullptr;
+    return context.builder.CreateAdd(a, b, "int_add");
 }
 
 static llvm::Value* SubtractVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
 {
-    std::cerr << "Not Implemented" << std::endl;
-    return nullptr;
+    return context.builder.CreateSub(a, b, "int_sub");
+}
+
+static llvm::Value* MultiplyVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateMul(a,b, "int_mul");
+}
+
+static llvm::Value* DivideVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateSDiv(a,b, "int_div");
 }
 
 
@@ -61,13 +58,23 @@ void OperatorNode::Process()
     std::string op = GetValue();
     if (op == "+")
     {
-        impl->type = Plus;
+        impl->type = IntOnly;
         impl->value = PlusVal;
     }
     else if (op == "-")
     {
-        impl->type = Subtract;
+        impl->type = IntOnly;
         impl->value = SubtractVal;
+    }
+    else if (op == "*")
+    {
+        impl->type = IntOnly;
+        impl->value = MultiplyVal;
+    }
+    else if (op == "/")
+    {
+        impl->type = IntOnly;
+        impl->value = DivideVal;
     }
     else
     {
