@@ -7,7 +7,7 @@ RULE(Statement)
 {
     Autoname(builder);
     // TODO: fix this, its too lenient
-    builder.Add(Expression, ';');
+    builder.Add(ExpressionTree, ';');
     builder.Ignore(1);
 
     builder.SetNodeType<StatementNode>();

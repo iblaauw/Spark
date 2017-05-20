@@ -2,7 +2,7 @@
 
 #include "AST/RuleBase.h"
 
-RULE(Expression);
+RULE(ExpressionTree);
 
 class ExpressionNode : public CustomNode
 {
@@ -13,6 +13,14 @@ public:
     UnknownPtr<RValue> Evaluate(CompileContext& context) override;
 };
 
+class ExpressionTreeNode : public CustomNode
+{
+public:
+    ExpressionTreeNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    std::string GetType() const override { return "ExpressionTreeNode"; }
+
+    UnknownPtr<RValue> Evaluate(CompileContext& context) override;
+};
 
 
 

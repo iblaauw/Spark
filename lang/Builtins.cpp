@@ -26,6 +26,26 @@ llvm::Function* DeclarePrintf(SymbolTable& symbolTable)
     return func;
 }
 
+llvm::Function* DeclarePrintc(SymbolTable& symbolTable)
+{
+    LangType* intType = symbolTable.types.Get("int");
+
+    auto& manager = Spark::LLVMManager::Instance();
+    std::vector<LangType*> args { intType };
+    std::vector<std::string> paramNames { "value" };
+    Function* langfunc = symbolTable.functions.Create("printc", "putchar", intType, args, paramNames);
+
+    std::vector<llvm::Type*> argsIR;
+    langfunc->GetIRTypes(argsIR);
+
+    auto sig = manager.GetFuncSignature(intType->GetIR(), argsIR);
+    llvm::Function* func = manager.DeclareFunction(langfunc->GetName(), sig);
+
+    langfunc->SetIR(func);
+
+    return func;
+}
+
 template <class T>
 LangType* _CreateType(std::string name)
 {

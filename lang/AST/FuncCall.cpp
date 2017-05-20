@@ -24,8 +24,8 @@ RULE(FuncCall)
 RULE(_FuncCallArgsChain)
 {
     Autoname(builder);
-    builder.Add(Expression, OptionalWhitespace, ',', OptionalWhitespace, _FuncCallArgsChain);
-    builder.Add(Expression);
+    builder.Add(ExpressionTree, OptionalWhitespace, ',', OptionalWhitespace, _FuncCallArgsChain);
+    builder.Add(ExpressionTree);
 
     builder.SetNodeType<FuncCallArgsChain>();
 }
