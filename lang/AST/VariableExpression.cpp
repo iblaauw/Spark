@@ -25,7 +25,7 @@ UnknownPtr<RValue> VariableExpressionNode::Evaluate(CompileContext& context)
 
     std::string varname = identifier->GetValue();
 
-    Variable* var = context.symbolTable.variables.Get(varname);
+    Variable* var = context.symbolTable->variables.Get(varname);
     if (var == nullptr)
     {
         std::cerr << "Error: no variable named '" << varname << "' exists" << std::endl;

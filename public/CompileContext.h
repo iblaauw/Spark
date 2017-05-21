@@ -10,7 +10,7 @@ class Function;
 class CompileContext
 {
 public:
-    SymbolTable symbolTable;
+    SymbolTable* symbolTable;
     llvm::IRBuilder<> builder;
     Function* currentFunction;
 

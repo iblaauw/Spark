@@ -66,7 +66,7 @@ void FunctionNode::Process()
 {
     ConvertToOnlyCustom();
 
-    CustomNode::Process();
+    ContextingNode::Process();
 }
 
 void FunctionNode::GatherSymbols(CompileContext& context)
@@ -75,7 +75,7 @@ void FunctionNode::GatherSymbols(CompileContext& context)
     auto nameNode = SafeGet<IdentifierNode>(1, "IdentifierNode");
     std::string funcName = nameNode->GetValue();
 
-    if (context.symbolTable.functions.Contains(funcName))
+    if (context.symbolTable->functions.Contains(funcName))
     {
         std::cerr << "Error: a function with the name '" << funcName << "' already exists" << std::endl;
         return;
@@ -103,7 +103,7 @@ void FunctionNode::GatherSymbols(CompileContext& context)
     LangType* retType = retTypeNode->GetIRType();
 
     // Create the actual function
-    funcDefinition = context.symbolTable.functions.Create(funcName, funcName, retType, paramTypes, paramNames);
+    funcDefinition = context.symbolTable->functions.Create(funcName, funcName, retType, paramTypes, paramNames);
 
     std::vector<llvm::Type*> paramIRTypes;
     funcDefinition->GetIRTypes(paramIRTypes);
@@ -121,7 +121,7 @@ void FunctionNode::GatherSymbols(CompileContext& context)
         LangType* type = paramTypes[i];
         std::string name = paramNames[i];
 
-        Variable* var = context.symbolTable.variables.Create(name, name, type);
+        Variable* var = this->table.variables.Create(name, name, type);
 
         llvm::Value* varIR = static_cast<llvm::Argument*>(iter);
         var->SetValue(varIR);
@@ -130,7 +130,7 @@ void FunctionNode::GatherSymbols(CompileContext& context)
     }
 
     // Recurse
-    CustomNode::GatherSymbols(context);
+    ContextingNode::GatherSymbols(context);
 }
 
 void FunctionNode::Generate(CompileContext& context)
@@ -138,7 +138,7 @@ void FunctionNode::Generate(CompileContext& context)
     // TODO: make this more safe and robust, check that function does already exist
 
     CompileContext newContext;
-    newContext.symbolTable.SetParent(&(context.symbolTable));
+    newContext.symbolTable = &table;
     newContext.currentFunction = funcDefinition;
 
     auto& manager = Spark::LLVMManager::Instance();
@@ -147,6 +147,8 @@ void FunctionNode::Generate(CompileContext& context)
 
     newContext.builder.SetInsertPoint(bb);
 
+    // Note: this is sepcifically 'CustomNode', NOT 'ContextingNode'
+    // (which will clobber the newContext value)
     CustomNode::Generate(newContext);
 
     // Check for missing return statement
@@ -154,7 +156,7 @@ void FunctionNode::Generate(CompileContext& context)
     llvm::BasicBlock* finalBB = builder.GetInsertBlock();
     if (finalBB->getTerminator() == nullptr)
     {
-        LangType* voidtype = context.symbolTable.types.Get("void");
+        LangType* voidtype = context.symbolTable->types.Get("void");
         if (funcDefinition->ReturnType() == voidtype)
         {
             // Implicit "return;", insert it automatically
@@ -167,6 +169,9 @@ void FunctionNode::Generate(CompileContext& context)
             return;
         }
     }
+
+    // Apply optimizations
+    manager.OptimizeFunction(funcDefinition->GetIR());
 }
 
 

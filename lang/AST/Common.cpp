@@ -49,14 +49,14 @@ RULE(Type)
 
 void TypeNode::VerifyTypes(CompileContext& context)
 {
-    auto& symbols = context.symbolTable;
+    auto* symbols = context.symbolTable;
     std::string val = GetValue();
-    type = symbols.types.Get(val);
+    type = symbols->types.Get(val);
 
     if (type == nullptr)
     {
         std::cerr << "Error: unknown type '" << val << "'" << std::endl;
-        type = symbols.types.Get("int");
+        type = symbols->types.Get("int");
     }
 }
 

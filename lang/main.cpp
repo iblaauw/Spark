@@ -35,9 +35,12 @@ int main()
 
     Spark::LLVMManager::Init("my_module");
 
+    SymbolTable globalSymbols;
+    AddBuiltinTypes(globalSymbols);
+    AddBuiltinFunctions(globalSymbols);
+
     CompileContext globalContext;
-    AddBuiltinTypes(globalContext.symbolTable);
-    AddBuiltinFunctions(globalContext.symbolTable);
+    globalContext.symbolTable = &globalSymbols;
 
     root->GatherTypes(globalContext);
     root->VerifyTypes(globalContext);

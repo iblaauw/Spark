@@ -22,7 +22,7 @@ public:
 
 static LangType* IntOnly(LangType* a, LangType* b, CompileContext& context)
 {
-    LangType* intType = context.symbolTable.types.Get("int");
+    LangType* intType = context.symbolTable->types.Get("int");
     if (a != intType || b != intType)
         return nullptr;
     return intType;

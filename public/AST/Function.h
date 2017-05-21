@@ -2,20 +2,22 @@
 
 #include "AST/RuleBase.h"
 #include "AST/Common.h"
+#include "AST/ContextingNode.h"
 #include "Function.h"
 
 RULE(FunctionRule);
 RULE(FunctionParameterList);
 RULE(FunctionParameter);
 
-class FunctionNode : public CustomNode
+class FunctionNode : public ContextingNode
 {
 private:
     Function* funcDefinition;
 public:
-    FunctionNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    FunctionNode(std::vector<NodePtr>& nodes) : ContextingNode(nodes) {}
     std::string GetType() const override { return "FunctionNode"; }
     void Process() override;
+
     void GatherSymbols(CompileContext& context) override;
     void Generate(CompileContext& context) override;
 };

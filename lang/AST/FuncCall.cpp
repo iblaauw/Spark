@@ -52,7 +52,7 @@ UnknownPtr<RValue> FuncCallNode::Evaluate(CompileContext& context)
     auto funcNameNode = SafeGet<IdentifierNode>(0, "IdentifierNode");
     std::string funcName = funcNameNode->GetValue();
 
-    Function* func = context.symbolTable.functions.Get(funcName);
+    Function* func = context.symbolTable->functions.Get(funcName);
 
     if (func == nullptr)
     {

@@ -44,7 +44,7 @@ void ReturnStatementNode::Generate(CompileContext& context)
         return;
     }
 
-    LangType* voidType = context.symbolTable.types.Get("void");
+    LangType* voidType = context.symbolTable->types.Get("void");
 
     if (retType == voidType)
     {

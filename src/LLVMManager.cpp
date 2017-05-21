@@ -58,10 +58,7 @@ namespace Spark
         if (!func->empty())
             throw SparkException("Error: attempting to reimplement function.");
 
-        llvm::IRBuilder<> builder(globalContext);
         llvm::BasicBlock* bb = llvm::BasicBlock::Create(globalContext, "entry", func);
-        //builder.SetInsertPoint(bb);
-        //return builder;
         return bb;
     }
 
