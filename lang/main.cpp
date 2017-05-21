@@ -37,8 +37,7 @@ int main()
 
     CompileContext globalContext;
     AddBuiltinTypes(globalContext.symbolTable);
-    DeclarePrintf(globalContext.symbolTable);
-    DeclarePrintc(globalContext.symbolTable);
+    AddBuiltinFunctions(globalContext.symbolTable);
 
     root->GatherTypes(globalContext);
     root->VerifyTypes(globalContext);

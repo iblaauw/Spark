@@ -1,14 +1,14 @@
 #include "AST/Statement.h"
 
 #include "AST/Common.h"
-#include "AST/Expression.h"
+#include "AST/ExpressionStatement.h"
+#include "AST/ReturnStatement.h"
 
 RULE(Statement)
 {
     Autoname(builder);
-    // TODO: fix this, its too lenient
-    builder.Add(ExpressionTree, ';');
-    builder.Ignore(1);
+    builder.Add(ReturnStatement);
+    builder.Add(ExpressionStatement);
 
     builder.SetNodeType<StatementNode>();
 }
@@ -22,15 +22,6 @@ RULE(StatementBlock)
     builder.Ignore(1);
 
     builder.SetNodeType<StatementBlockChain>();
-}
-
-
-void StatementNode::Generate(CompileContext& context)
-{
-    for (Ptr<CustomNode> child : customChildren)
-    {
-        child->Evaluate(context);
-    }
 }
 
 

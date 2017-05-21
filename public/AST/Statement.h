@@ -17,8 +17,6 @@ class StatementNode : public CustomNode
 public:
     StatementNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
     std::string GetType() const override { return "StatementNode"; }
-
-    void Generate(CompileContext& context) override;
 };
 
 

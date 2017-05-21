@@ -4,46 +4,47 @@
 #include "Function.h"
 #include "TypeConverter.h"
 
-llvm::Function* DeclarePrintf(SymbolTable& symbolTable)
+void DeclarePrintf(SymbolTable& symbolTable)
 {
     LangType* intType = symbolTable.types.Get("int");
     LangType* stringType = symbolTable.types.Get("string");
-
-    auto& manager = Spark::LLVMManager::Instance();
 
     std::vector<LangType*> args { stringType };
     std::vector<std::string> paramNames { "value" };
     Function* langfunc = symbolTable.functions.Create("print", "printf", intType, args, paramNames);
 
-    std::vector<llvm::Type*> argsIR;
-    langfunc->GetIRTypes(argsIR);
-
-    auto sig = manager.GetFuncSignatureVarargs(intType->GetIR(), argsIR);
-    llvm::Function* func = manager.DeclareFunction(langfunc->GetName(), sig);
-
-    langfunc->SetIR(func);
-
-    return func;
+    langfunc->SetIRDefault();
 }
 
-llvm::Function* DeclarePrintc(SymbolTable& symbolTable)
+void DeclarePrintc(SymbolTable& symbolTable)
 {
     LangType* intType = symbolTable.types.Get("int");
 
-    auto& manager = Spark::LLVMManager::Instance();
     std::vector<LangType*> args { intType };
     std::vector<std::string> paramNames { "value" };
     Function* langfunc = symbolTable.functions.Create("printc", "putchar", intType, args, paramNames);
 
+    langfunc->SetIRDefault();
+}
+
+void DeclareMalloc(SymbolTable& symbolTable)
+{
+    LangType* strType = symbolTable.types.Get("string");
+    LangType* intType = symbolTable.types.Get("int");
+
+    llvm::Type* i8type = Spark::TypeConverter::Get<char>();
+    llvm::Type* i8ptr = i8type->getPointerTo();
+
+    auto& manager = Spark::LLVMManager::Instance();
+    std::vector<LangType*> args { intType };
+    std::vector<std::string> paramNames { "size" };
+    Function* func = symbolTable.functions.Create("malloc", "malloc", strType, args, paramNames);
+
     std::vector<llvm::Type*> argsIR;
-    langfunc->GetIRTypes(argsIR);
-
-    auto sig = manager.GetFuncSignature(intType->GetIR(), argsIR);
-    llvm::Function* func = manager.DeclareFunction(langfunc->GetName(), sig);
-
-    langfunc->SetIR(func);
-
-    return func;
+    func->GetIRTypes(argsIR);
+    auto sig = manager.GetFuncSignature(i8ptr, argsIR);
+    llvm::Function* funcIR = manager.DeclareFunction(func->GetName(), sig);
+    func->SetIR(funcIR);
 }
 
 template <class T>
@@ -85,6 +86,13 @@ void AddBuiltinTypes(SymbolTable& symbolTable)
 
     type = _CreateStringType();
     symbolTable.types.Add(type->GetName(), type);
+}
+
+void AddBuiltinFunctions(SymbolTable& symbolTable)
+{
+    DeclarePrintf(symbolTable);
+    DeclarePrintc(symbolTable);
+    DeclareMalloc(symbolTable);
 }
 
 

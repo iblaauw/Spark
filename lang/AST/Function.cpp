@@ -18,11 +18,11 @@ public:
 RULE(FunctionRule)
 {
     Autoname(builder);
-    builder.Add("func ", Identifier, '(', FunctionParameterList, ')', OptionalWhitespace, '{', OptionalWhitespace, StatementBlock, OptionalWhitespace, '}');
+    builder.Add(Type, Whitespace, Identifier, '(', FunctionParameterList, ')', OptionalWhitespace, '{', OptionalWhitespace, StatementBlock, OptionalWhitespace, '}');
 
-    builder.Ignore(5);
-    builder.Ignore(7);
-    builder.Ignore(9);
+    builder.Ignore(6);
+    builder.Ignore(8);
+    builder.Ignore(10);
 
     builder.SetNodeType<FunctionNode>();
 }
@@ -72,7 +72,7 @@ void FunctionNode::Process()
 void FunctionNode::GatherSymbols(CompileContext& context)
 {
     // TODO: make this more safe and robust, check that function doesn't already exist
-    auto nameNode = SafeGet<IdentifierNode>(0, "IdentifierNode");
+    auto nameNode = SafeGet<IdentifierNode>(1, "IdentifierNode");
     std::string funcName = nameNode->GetValue();
 
     if (context.symbolTable.functions.Contains(funcName))
@@ -81,10 +81,17 @@ void FunctionNode::GatherSymbols(CompileContext& context)
         return;
     }
 
-    auto paramListNode = SafeGet<FuncParamListNode>(1, "FuncParamListNode");
+    auto paramListNode = SafeGet<FuncParamListNode>(2, "FuncParamListNode");
     if (paramListNode == nullptr)
     {
         std::cerr << "Internal Error: Invalid parameter list in FunctionNode" << std::endl;
+        return;
+    }
+
+    auto retTypeNode = SafeGet<TypeNode>(0, "TypeNode");
+    if (retTypeNode == nullptr)
+    {
+        std::cerr << "Internal Error: Invalid return type node in FunctionNode" << std::endl;
         return;
     }
 
@@ -93,7 +100,7 @@ void FunctionNode::GatherSymbols(CompileContext& context)
     paramListNode->GetParamTypes(paramTypes);
     std::vector<std::string> paramNames;
     paramListNode->GetParamNames(paramNames);
-    LangType* retType = context.symbolTable.types.Get("void"); // TODO: make not all void
+    LangType* retType = retTypeNode->GetIRType();
 
     // Create the actual function
     funcDefinition = context.symbolTable.functions.Create(funcName, funcName, retType, paramTypes, paramNames);
@@ -130,15 +137,36 @@ void FunctionNode::Generate(CompileContext& context)
 {
     // TODO: make this more safe and robust, check that function does already exist
 
+    CompileContext newContext;
+    newContext.symbolTable.SetParent(&(context.symbolTable));
+    newContext.currentFunction = funcDefinition;
+
     auto& manager = Spark::LLVMManager::Instance();
 
     auto* bb = manager.Implement(funcDefinition->GetIR());
 
-    context.builder.SetInsertPoint(bb);
+    newContext.builder.SetInsertPoint(bb);
 
-    CustomNode::Generate(context);
+    CustomNode::Generate(newContext);
 
-    context.builder.CreateRetVoid();
+    // Check for missing return statement
+    auto& builder = newContext.builder;
+    llvm::BasicBlock* finalBB = builder.GetInsertBlock();
+    if (finalBB->getTerminator() == nullptr)
+    {
+        LangType* voidtype = context.symbolTable.types.Get("void");
+        if (funcDefinition->ReturnType() == voidtype)
+        {
+            // Implicit "return;", insert it automatically
+            builder.CreateRetVoid();
+        }
+        else
+        {
+            // No return in a non-void function
+            std::cerr << "Error: no return statement in function '" << funcDefinition->GetName() << "' that expects a return value." << std::endl;
+            return;
+        }
+    }
 }
 
 

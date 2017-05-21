@@ -31,6 +31,7 @@ public:
 
     llvm::Function* GetIR() const { return func; }
     void SetIR(llvm::Function* func) { this->func = func; }
+    void SetIRDefault();
 
     void GetIRTypes(std::vector<llvm::Type*>& typesOut) const;
 };
