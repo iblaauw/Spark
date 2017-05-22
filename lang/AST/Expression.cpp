@@ -84,8 +84,8 @@ UnknownPtr<RValue> ExpressionTreeNode::Evaluate(CompileContext& context)
         return nullptr;
     }
 
-    llvm::Value* lval = lhs->GetValue();
-    llvm::Value* rval = rhs->GetValue();
+    llvm::Value* lval = lhs->GetValue(context);
+    llvm::Value* rval = rhs->GetValue(context);
     llvm::Value* resultValue = op->Create(lval, rval, context);
     auto finalResult = std::make_shared<GeneralRValue>(resultValue, resultType);
     return PtrCast<RValue>(finalResult);

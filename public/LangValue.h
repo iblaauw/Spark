@@ -5,12 +5,15 @@
 #include "LangType.h"
 #include "PtrUtils.h"
 
+class CompileContext;
+
 class RValue
 {
 public:
     virtual bool IsLValue() const { return false; }
-    virtual llvm::Value* GetValue() const = 0;
+    virtual llvm::Value* GetValue(CompileContext& context) const = 0;
     virtual LangType* GetType() const = 0;
+    virtual ~RValue() {}
 };
 
 class LValue : public RValue
@@ -28,7 +31,7 @@ private:
 public:
     GeneralRValue(llvm::Value* value, LangType* type);
 
-    llvm::Value* GetValue() const override { return value; }
+    llvm::Value* GetValue(CompileContext& context) const override { return value; }
     LangType* GetType() const override { return type; }
 };
 

@@ -4,6 +4,7 @@
 #include "AST/Statement.h"
 #include "TypeConverter.h"
 #include "LLVMManager.h"
+#include "Variable.h"
 
 #include <iostream>
 
@@ -121,7 +122,8 @@ void FunctionNode::GatherSymbols(CompileContext& context)
         LangType* type = paramTypes[i];
         std::string name = paramNames[i];
 
-        Variable* var = this->table.variables.Create(name, name, type);
+        Variable* var = new Variable(name, type);
+        this->table.variables.Add(name, var);
 
         llvm::Value* varIR = static_cast<llvm::Argument*>(iter);
         var->SetValue(varIR);

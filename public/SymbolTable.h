@@ -5,7 +5,7 @@
 
 #include "Function.h"
 #include "LangType.h"
-#include "Variable.h"
+#include "LangValue.h"
 #include "PtrUtils.h"
 
 template <class T>
@@ -77,7 +77,7 @@ private:
 public:
     SymbolSubtable<Function> functions;
     SymbolSubtable<LangType> types;
-    SymbolSubtable<Variable> variables;
+    SymbolSubtable<LValue> variables;
 
     SymbolTable();
     SymbolTable(SymbolTable* parent);

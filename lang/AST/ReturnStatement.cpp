@@ -74,7 +74,8 @@ void ReturnStatementNode::Generate(CompileContext& context)
         return;
     }
 
-    context.builder.CreateRet(result->GetValue());
+    auto* to_return = result->GetValue(context);
+    context.builder.CreateRet(to_return);
 }
 
 

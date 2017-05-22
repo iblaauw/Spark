@@ -3,11 +3,13 @@
 #include "AST/Common.h"
 #include "AST/ExpressionStatement.h"
 #include "AST/ReturnStatement.h"
+#include "AST/VariableDeclare.h"
 
 RULE(Statement)
 {
     Autoname(builder);
     builder.Add(ReturnStatement);
+    builder.Add(VariableDeclaration);
     builder.Add(ExpressionStatement);
 
     builder.SetNodeType<StatementNode>();

@@ -70,7 +70,7 @@ UnknownPtr<RValue> FuncCallNode::Evaluate(CompileContext& context)
 
     llvm::Function* funcDef = func->GetIR();
     std::vector<llvm::Value*> args;
-    auto converter = [](UnknownPtr<RValue> rv) { return rv->GetValue(); };
+    auto converter = [&context](UnknownPtr<RValue> rv) { return rv->GetValue(context); };
     ::Map(converter, argVals, args);
 
     llvm::Value* value = context.builder.CreateCall(funcDef, args);
