@@ -4,13 +4,15 @@
 
 #include "CompileContext.h"
 
-Variable::Variable(std::string name, LangType* type) : name(name), type(type)
-{}
-
-
-void Variable::SetValue(llvm::Value* value)
+RegisterVariable::RegisterVariable(std::string name, LangType* type) : Variable(name, type),
+    updater()
 {
-    this->value = value;
+    updater.Initialize(type->GetIR(), name);
+}
+
+
+void RegisterVariable::SetValue(llvm::Value* value)
+{
     if (value == nullptr)
     {
         std::cerr << "Internal Error: null variable IR value" << std::endl;
@@ -19,42 +21,53 @@ void Variable::SetValue(llvm::Value* value)
 
     if (type->GetIR() != value->getType())
     {
-        std::cerr <<  "Warning: mismatched variable types" << std::endl;
-    }
-}
-
-void Variable::Assign(const RValue& newValue, CompileContext& context) const
-{
-    if (value == nullptr)
-    {
-        std::cerr << "Internal Error: Variable has no IR value" << std::endl;
+        std::cerr <<  "Internal Error: mismatched variable type in RegisterVariable" << std::endl;
         return;
     }
 
-    // TODO: do this
-    std::cerr << "Error: Not Implemented" << std::endl;
+    baseValue = value;
+    //updater.AddAvailableValue(currentBB, value);
 }
 
-MemoryVariable::MemoryVariable(std::string name, LangType* type) : name(name), type(type)
+llvm::Value* RegisterVariable::GetValue(CompileContext& context) const
+{
+    llvm::BasicBlock* currentBB = context.builder.GetInsertBlock();
+    return updater.GetValueAtEndOfBlock(currentBB);
+}
+
+
+void RegisterVariable::Assign(const RValue& newValue, CompileContext& context) const
+{
+    llvm::Value* val = newValue.GetValue(context);
+
+    // Note: its important to get the value before the block (getting the value inserts instructions)
+    llvm::BasicBlock* currentBB = context.builder.GetInsertBlock();
+
+    LangType* valType = newValue.GetType();
+    if (!type->IsAssignableFrom(*valType))
+    {
+        std::cerr << "Error: cannot assign a value of type '" << valType->GetName() << "' to variable '" << name << "' of type '" << type->GetName() << "'" << std::endl;
+        return;
+    }
+
+    updater.AddAvailableValue(currentBB, val);
+}
+
+void RegisterVariable::Allocate(CompileContext& context)
+{
+    llvm::BasicBlock* currentBB = context.builder.GetInsertBlock();
+    updater.AddAvailableValue(currentBB, baseValue);
+    baseValue = nullptr;
+}
+
+void RegisterVariable::Initialize(CompileContext& context)
+{
+    // Do nothing
+}
+
+
+MemoryVariable::MemoryVariable(std::string name, LangType* type) : Variable(name, type)
 {}
-
-void MemoryVariable::SetValue(llvm::Value* value)
-{
-    if (value == nullptr)
-    {
-        std::cerr << "Internal Error: argument null in MemoryVariable" << std::endl;
-        return;
-    }
-
-    llvm::Type* ptrType = type->GetIR()->getPointerTo();
-    if (value->getType() != ptrType)
-    {
-        std::cerr << "Internal Error: mismatched variable type in MemoryVariable" << std::endl;
-        return;
-    }
-
-    ptr = value;
-}
 
 llvm::Value* MemoryVariable::GetValue(CompileContext& context) const
 {
@@ -80,8 +93,18 @@ void MemoryVariable::Assign(const RValue& newValue, CompileContext& context) con
 
     // TODO: add implicit conversions
 
-    context.builder.CreateStore(ptr, newValue.GetValue(context));
+    context.builder.CreateStore(newValue.GetValue(context), ptr);
 }
 
+void MemoryVariable::Allocate(CompileContext& context)
+{
+    llvm::Value* val = context.builder.CreateAlloca(type->GetIR(), nullptr, name);
+    this->ptr = val;
+}
+
+void MemoryVariable::Initialize(CompileContext& context)
+{
+    // Nothing (for now, wait until classes are in place)
+}
 
 

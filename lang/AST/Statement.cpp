@@ -4,12 +4,14 @@
 #include "AST/ExpressionStatement.h"
 #include "AST/ReturnStatement.h"
 #include "AST/VariableDeclare.h"
+#include "AST/AssignmentStatement.h"
 
 RULE(Statement)
 {
     Autoname(builder);
     builder.Add(ReturnStatement);
     builder.Add(VariableDeclaration);
+    builder.Add(AssignmentStatement);
     builder.Add(ExpressionStatement);
 
     builder.SetNodeType<StatementNode>();

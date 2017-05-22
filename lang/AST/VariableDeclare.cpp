@@ -8,8 +8,9 @@ RULE(VariableDeclaration)
     builder.Add(Type, Whitespace, Identifier, ';');
     builder.Ignore(1);
     builder.Ignore(3);
-}
 
+    builder.SetNodeType<VariableDeclareNode>();
+}
 
 void VariableDeclareNode::GatherSymbols(CompileContext& context)
 {
@@ -32,12 +33,21 @@ void VariableDeclareNode::GatherSymbols(CompileContext& context)
 
     variable = new MemoryVariable(name, type);
     context.symbolTable->variables.Add(name, variable);
+
+    if (context.currentFunction == nullptr)
+    {
+        std::cerr << "Internal Error: no current function in context of VariableDeclaration" << std::endl;
+        return;
+    }
+
+    context.currentFunction->allocationSet.push_back(variable);
 }
 
 void VariableDeclareNode::Generate(CompileContext& context)
 {
-    llvm::Value* val = context.builder.CreateAlloca(variable->GetType()->GetIR(), nullptr, variable->GetName());
-    variable->SetValue(val);
+    // These are now handled by function allocation
+    //llvm::Value* val = context.builder.CreateAlloca(variable->GetType()->GetIR(), nullptr, variable->GetName());
+    //variable->SetValue(val);
 }
 
 

@@ -1,40 +1,51 @@
 #pragma once
 
+#include "llvm/Transforms/Utils/SSAUpdater.h"
+
 #include "LangType.h"
 #include "LangValue.h"
 
 class Variable : public LValue
 {
+protected:
     std::string name;
     LangType* type;
-    llvm::Value* value;
 public:
-    Variable(std::string name, LangType* type);
+    Variable(std::string name, LangType* type) : name(name), type(type) {}
 
     std::string GetName() const { return name; }
-
-    void SetValue(llvm::Value* value);
-
-    llvm::Value* GetValue(CompileContext& context) const override { return value; }
     LangType* GetType() const override { return type; }
-    void Assign(const RValue& newValue, CompileContext& context) const override;
+
+    virtual void Allocate(CompileContext& context) = 0;
+    virtual void Initialize(CompileContext& context) = 0;
 };
 
-class MemoryVariable : public LValue
+class RegisterVariable : public Variable
 {
-    std::string name;
-    LangType* type;
-    llvm::Value* ptr;
+    mutable llvm::SSAUpdater updater;
+    llvm::Value* baseValue;
 public:
-    MemoryVariable(std::string name, LangType* type);
-
-    std::string GetName() const { return name; }
+    RegisterVariable(std::string name, LangType* type);
 
     void SetValue(llvm::Value* value);
 
     llvm::Value* GetValue(CompileContext& context) const override;
-    LangType* GetType() const override { return type; }
     void Assign(const RValue& newValue, CompileContext& context) const override;
 
+    void Allocate(CompileContext& context) override;
+    void Initialize(CompileContext& context) override;
+};
+
+class MemoryVariable : public Variable
+{
+    llvm::Value* ptr;
+public:
+    MemoryVariable(std::string name, LangType* type);
+
+    llvm::Value* GetValue(CompileContext& context) const override;
+    void Assign(const RValue& newValue, CompileContext& context) const override;
+
+    void Allocate(CompileContext& context) override;
+    void Initialize(CompileContext& context) override;
 };
 

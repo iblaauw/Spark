@@ -2,31 +2,41 @@
 
 void ContextingNode::GatherTypes(CompileContext& context)
 {
-    table.SetParent(context.symbolTable);
+    SymbolTable* originalTable = context.symbolTable;
+    table.SetParent(originalTable);
 
-    CompileContext newContext;
-    newContext.symbolTable = &table;
-    CustomNode::GatherTypes(newContext);
+    context.symbolTable = &table;
+    CustomNode::GatherTypes(context);
+    context.symbolTable = originalTable;
 }
 
 void ContextingNode::VerifyTypes(CompileContext& context)
 {
-    CompileContext newContext;
-    newContext.symbolTable = &table;
-    CustomNode::VerifyTypes(newContext);
+    SymbolTable* originalTable = context.symbolTable;
+    table.SetParent(originalTable);
+
+    context.symbolTable = &table;
+    CustomNode::VerifyTypes(context);
+    context.symbolTable = originalTable;
 }
 
 void ContextingNode::GatherSymbols(CompileContext& context)
 {
-    CompileContext newContext;
-    newContext.symbolTable = &table;
-    CustomNode::GatherSymbols(newContext);
+    SymbolTable* originalTable = context.symbolTable;
+    table.SetParent(originalTable);
+
+    context.symbolTable = &table;
+    CustomNode::GatherSymbols(context);
+    context.symbolTable = originalTable;
 }
 
 void ContextingNode::Generate(CompileContext& context)
 {
-    CompileContext newContext;
-    newContext.symbolTable = &table;
-    CustomNode::Generate(newContext);
+    SymbolTable* originalTable = context.symbolTable;
+    table.SetParent(originalTable);
+
+    context.symbolTable = &table;
+    CustomNode::Generate(context);
+    context.symbolTable = originalTable;
 }
 

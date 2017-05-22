@@ -7,6 +7,8 @@
 #include "PtrUtils.h"
 #include "llvm/IR/Function.h"
 
+class Variable;
+
 class Function
 {
 private:
@@ -16,6 +18,8 @@ private:
     std::vector<std::string> parameterNames;
     llvm::Function* func;
 public:
+    std::vector<Variable*> allocationSet;
+
     Function(std::string name,
             LangType* returnType,
             const std::vector<LangType*>& parameterTypes,
@@ -34,4 +38,5 @@ public:
     void SetIRDefault();
 
     void GetIRTypes(std::vector<llvm::Type*>& typesOut) const;
+
 };

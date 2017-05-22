@@ -122,8 +122,9 @@ void FunctionNode::GatherSymbols(CompileContext& context)
         LangType* type = paramTypes[i];
         std::string name = paramNames[i];
 
-        Variable* var = new Variable(name, type);
+        RegisterVariable* var = new RegisterVariable(name, type);
         this->table.variables.Add(name, var);
+        this->funcDefinition->allocationSet.push_back(var);
 
         llvm::Value* varIR = static_cast<llvm::Argument*>(iter);
         var->SetValue(varIR);
@@ -132,30 +133,39 @@ void FunctionNode::GatherSymbols(CompileContext& context)
     }
 
     // Recurse
+    context.currentFunction = funcDefinition;
     ContextingNode::GatherSymbols(context);
+    context.currentFunction = nullptr;
 }
 
 void FunctionNode::Generate(CompileContext& context)
 {
     // TODO: make this more safe and robust, check that function does already exist
-
-    CompileContext newContext;
-    newContext.symbolTable = &table;
-    newContext.currentFunction = funcDefinition;
-
     auto& manager = Spark::LLVMManager::Instance();
 
     auto* bb = manager.Implement(funcDefinition->GetIR());
 
-    newContext.builder.SetInsertPoint(bb);
+    context.builder.SetInsertPoint(bb);
+    context.currentFunction = funcDefinition;
 
-    // Note: this is sepcifically 'CustomNode', NOT 'ContextingNode'
-    // (which will clobber the newContext value)
-    CustomNode::Generate(newContext);
+    // Allocate and initialize
+    for (Variable* var : funcDefinition->allocationSet)
+    {
+        var->Allocate(context);
+    }
+
+    for (Variable* var : funcDefinition->allocationSet)
+    {
+        var->Initialize(context);
+    }
+
+    // Recurse
+    ContextingNode::Generate(context);
 
     // Check for missing return statement
-    auto& builder = newContext.builder;
+    auto& builder = context.builder;
     llvm::BasicBlock* finalBB = builder.GetInsertBlock();
+
     if (finalBB->getTerminator() == nullptr)
     {
         LangType* voidtype = context.symbolTable->types.Get("void");
@@ -174,6 +184,9 @@ void FunctionNode::Generate(CompileContext& context)
 
     // Apply optimizations
     manager.OptimizeFunction(funcDefinition->GetIR());
+
+    context.currentFunction = nullptr;
+    context.builder.ClearInsertionPoint();
 }
 
 

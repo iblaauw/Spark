@@ -6,6 +6,7 @@
 #include "LLVMManager.h"
 
 class Function;
+class Variable;
 
 class CompileContext
 {

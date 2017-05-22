@@ -33,7 +33,7 @@ int main()
 
     PrintTree(tree);
 
-    Spark::LLVMManager::Init("my_module");
+    Spark::LLVMManager::Init("my_module", 0); // NOTE: no optimizations enabled because of debugging
 
     SymbolTable globalSymbols;
     AddBuiltinTypes(globalSymbols);
