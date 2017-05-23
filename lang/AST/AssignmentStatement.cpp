@@ -31,6 +31,19 @@ void AssignmentStatementNode::Generate(CompileContext& context)
 
     LValue* lval = static_cast<LValue*>(lhs.Get());
 
-    lval->Assign(*rhs, context);
+    auto ltype = lval->GetType();
+    auto rtype = rhs->GetType();
+
+    if (!ltype->IsAssignableFrom(*rtype))
+    {
+        Error("cannot assign a value of type '", rtype->GetName(), "' to l-value of type '", ltype->GetName(), "'");
+        return;
+    }
+
+    llvm::Value* rval = rhs->GetValue(context);
+
+    // TODO: add implicit converstions
+
+    lval->Assign(rval, context);
 }
 

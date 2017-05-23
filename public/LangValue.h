@@ -20,7 +20,7 @@ class LValue : public RValue
 {
 public:
     virtual bool IsLValue() const override { return true; }
-    virtual void Assign(const RValue& value, CompileContext& context) const = 0;
+    virtual void Assign(llvm::Value* value, CompileContext& context) const = 0;
 };
 
 class GeneralRValue : public RValue

@@ -27,25 +27,20 @@ llvm::Value* RegisterVariable::GetValue(CompileContext& context) const
 }
 
 
-void RegisterVariable::Assign(const RValue& newValue, CompileContext& context) const
+void RegisterVariable::Assign(llvm::Value* value, CompileContext& context) const
 {
-    llvm::Value* val = newValue.GetValue(context);
+    Assert(value != nullptr, "null argument");
+    Assert(value->getType() == type->GetIR(), "type mismatch for assigning to register variable");
 
-    // Note: its important to get the value before the block (getting the value inserts instructions)
     llvm::BasicBlock* currentBB = context.builder.GetInsertBlock();
 
-    LangType* valType = newValue.GetType();
-    if (!type->IsAssignableFrom(*valType))
-    {
-        Error("cannot assign a value of type '", valType->GetName(), "' to variable '", name, "' with type '", type->GetName(), "'");
-        return;
-    }
-
-    updater.AddAvailableValue(currentBB, val);
+    updater.AddAvailableValue(currentBB, value);
 }
 
 void RegisterVariable::Allocate(CompileContext& context)
 {
+    Assert(baseValue != nullptr, "RegisterValue never had 'SetValue' called");
+
     llvm::BasicBlock* currentBB = context.builder.GetInsertBlock();
     updater.AddAvailableValue(currentBB, baseValue);
     baseValue = nullptr;
@@ -67,18 +62,13 @@ llvm::Value* MemoryVariable::GetValue(CompileContext& context) const
     return context.builder.CreateLoad(ptr, name + "_val");
 }
 
-void MemoryVariable::Assign(const RValue& newValue, CompileContext& context) const
+void MemoryVariable::Assign(llvm::Value* value, CompileContext& context) const
 {
-    LangType* newType = newValue.GetType();
-    if (!type->IsAssignableFrom(*newType))
-    {
-        Error("cannot assign a value of type '", newType->GetName(), "' to variable '", name, "' with type '", type->GetName(), "'");
-        return;
-    }
+    Assert(value != nullptr, "null argument");
+    Assert(ptr != nullptr, "no pointer initialized for MemoryVariable");
+    Assert(value->getType()->getPointerTo() == ptr->getType(), "type mismatch for assigning to memory variable");
 
-    // TODO: add implicit conversions
-
-    context.builder.CreateStore(newValue.GetValue(context), ptr);
+    context.builder.CreateStore(value, ptr);
 }
 
 void MemoryVariable::Allocate(CompileContext& context)

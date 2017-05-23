@@ -30,7 +30,7 @@ public:
     void SetValue(llvm::Value* value);
 
     llvm::Value* GetValue(CompileContext& context) const override;
-    void Assign(const RValue& newValue, CompileContext& context) const override;
+    void Assign(llvm::Value* value, CompileContext& context) const override;
 
     void Allocate(CompileContext& context) override;
     void Initialize(CompileContext& context) override;
@@ -43,7 +43,7 @@ public:
     MemoryVariable(std::string name, LangType* type);
 
     llvm::Value* GetValue(CompileContext& context) const override;
-    void Assign(const RValue& newValue, CompileContext& context) const override;
+    void Assign(llvm::Value* value, CompileContext& context) const override;
 
     void Allocate(CompileContext& context) override;
     void Initialize(CompileContext& context) override;
