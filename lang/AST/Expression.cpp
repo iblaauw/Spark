@@ -32,11 +32,7 @@ RULE(ExpressionTree)
 
 UnknownPtr<RValue> ExpressionNode::Evaluate(CompileContext& context)
 {
-    if (customChildren.size() == 0)
-    {
-        std::cerr << "Internal Error: empty expression" << std::endl;
-        return nullptr;
-    }
+    Assert(customChildren.size() != 0, "empty expression");
 
     auto child = customChildren[0];
     return child->Evaluate(context);
@@ -44,10 +40,7 @@ UnknownPtr<RValue> ExpressionNode::Evaluate(CompileContext& context)
 
 UnknownPtr<RValue> ExpressionTreeNode::Evaluate(CompileContext& context)
 {
-    if (customChildren.size() == 0)
-    {
-        std::cerr << "Internal Error: empty expression tree" << std::endl;
-    }
+    Assert(customChildren.size() != 0, "empty expression");
 
     auto lhs = customChildren[0]->Evaluate(context);
     if (lhs == nullptr)
@@ -57,17 +50,8 @@ UnknownPtr<RValue> ExpressionTreeNode::Evaluate(CompileContext& context)
         return lhs;
 
     Ptr<OperatorNode> op = SafeGet<OperatorNode>(1, "OperatorNode");
-    if (op == nullptr)
-    {
-        std::cerr << "Internal Error: invalid operator node in expression tree." << std::endl;
-        return nullptr;
-    }
 
-    if (customChildren.size() < 3)
-    {
-        std::cerr << "Internal Error: missing portion of expression tree." << std::endl;
-        return nullptr;
-    }
+    Assert(customChildren.size() >= 3, "missing portion of expression tree");
 
     auto rhs = customChildren[2]->Evaluate(context);
     if (rhs == nullptr)
@@ -78,9 +62,8 @@ UnknownPtr<RValue> ExpressionTreeNode::Evaluate(CompileContext& context)
     LangType* resultType = op->GetResultType(ltype, rtype, context);
     if (resultType == nullptr)
     {
-        std::cerr << "Error: cannot apply operator '" << op->GetValue()
-            << "' to values of type '" << ltype->GetName() << "' and '"
-            << rtype->GetName() << "'." << std::endl;
+        Error("cannot apply operator '", op->GetValue(), "' to values of type '",
+                ltype->GetName(), "' and '", rtype->GetName(), "'.");
         return nullptr;
     }
 

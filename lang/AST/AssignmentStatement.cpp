@@ -25,7 +25,7 @@ void AssignmentStatementNode::Generate(CompileContext& context)
 
     if (!lhs->IsLValue())
     {
-        std::cerr << "Error: Can only assign to a variable or a valid l-value" << std::endl;
+        Error("Can only assign to a variable or a valid l-value");
         return;
     }
 

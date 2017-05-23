@@ -8,6 +8,7 @@
 #include "Utils.h"
 #include "AST/Program.h"
 #include "Builtins.h"
+#include "Errors.h"
 
 class OperatorNode : public Spark::Node
 {
@@ -42,17 +43,32 @@ int main()
     CompileContext globalContext;
     globalContext.symbolTable = &globalSymbols;
 
+    if (HasError())
+        return 1;
+
     root->GatherTypes(globalContext);
+
+    if (HasError())
+        return 1;
+
     root->VerifyTypes(globalContext);
+
+    if (HasError())
+        return 1;
 
     std::cout << std::endl << "Gathering Symbols..." << std::endl;
 
     root->GatherSymbols(globalContext);
 
+    if (HasError())
+        return 1;
+
     std::cout << std::endl << "Generating..." << std::endl;
 
     root->Generate(globalContext);
 
+    if (HasError())
+        return 1;
 
     std::cout << std::endl << "Begin module dump" << std::endl << std::endl;
     auto& manager = Spark::LLVMManager::Instance();

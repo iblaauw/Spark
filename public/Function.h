@@ -17,8 +17,8 @@ private:
     std::vector<LangType*> parameterTypes;
     std::vector<std::string> parameterNames;
     llvm::Function* func;
-public:
     std::vector<Variable*> allocationSet;
+public:
 
     Function(std::string name,
             LangType* returnType,
@@ -39,4 +39,6 @@ public:
 
     void GetIRTypes(std::vector<llvm::Type*>& typesOut) const;
 
+    void RegisterForAllocation(Variable* var);
+    void AllocateAndInitialize(CompileContext& context);
 };

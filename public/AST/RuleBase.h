@@ -9,6 +9,7 @@
 #include "CompileContext.h"
 #include "LangValue.h"
 #include "UnknownPtr.h"
+#include "Errors.h"
 
 #include <iostream>
 
@@ -55,19 +56,18 @@ protected:
     template <class T>
     Ptr<T> SafeGet(int index) const
     {
-        if (customChildren.size() < index)
-            return nullptr;
+        Assert(customChildren.size() > index, "Invalid Node Structure");
         return PtrCast<T>(customChildren[index]);
     }
 
     template <class T>
     Ptr<T> SafeGet(int index, std::string type) const
     {
-        if (customChildren.size() <= index)
-            return nullptr;
+        Assert(customChildren.size() > index, "Invalid Node Structure");
+
         Ptr<CustomNode> child = customChildren[index];
-        if (child->GetType() != type)
-            return nullptr;
+
+        Assert(child->GetType() == type, "Invalid Node Structure");
 
         return PtrCast<T>(child);
     }

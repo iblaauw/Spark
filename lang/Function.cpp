@@ -1,5 +1,6 @@
 #include "Function.h"
 #include "LLVMManager.h"
+#include "Variable.h"
 
 Function::Function(std::string name,
         LangType* returnType,
@@ -28,4 +29,23 @@ void Function::GetIRTypes(std::vector<llvm::Type*>& typesOut) const
     }
 }
 
+void Function::RegisterForAllocation(Variable* var)
+{
+    allocationSet.push_back(var);
+}
+
+void Function::AllocateAndInitialize(CompileContext& context)
+{
+    for (Variable* var : allocationSet)
+    {
+        var->Allocate(context);
+    }
+
+    for (Variable* var : allocationSet)
+    {
+        var->Initialize(context);
+    }
+
+    allocationSet.clear();
+}
 

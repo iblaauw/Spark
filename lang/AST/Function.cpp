@@ -5,6 +5,7 @@
 #include "TypeConverter.h"
 #include "LLVMManager.h"
 #include "Variable.h"
+#include "Errors.h"
 
 #include <iostream>
 
@@ -78,23 +79,12 @@ void FunctionNode::GatherSymbols(CompileContext& context)
 
     if (context.symbolTable->functions.Contains(funcName))
     {
-        std::cerr << "Error: a function with the name '" << funcName << "' already exists" << std::endl;
+        Error("a function with the name '", funcName, "' already exists!");
         return;
     }
 
     auto paramListNode = SafeGet<FuncParamListNode>(2, "FuncParamListNode");
-    if (paramListNode == nullptr)
-    {
-        std::cerr << "Internal Error: Invalid parameter list in FunctionNode" << std::endl;
-        return;
-    }
-
     auto retTypeNode = SafeGet<TypeNode>(0, "TypeNode");
-    if (retTypeNode == nullptr)
-    {
-        std::cerr << "Internal Error: Invalid return type node in FunctionNode" << std::endl;
-        return;
-    }
 
     // Get types and names
     std::vector<LangType*> paramTypes;
@@ -124,7 +114,7 @@ void FunctionNode::GatherSymbols(CompileContext& context)
 
         RegisterVariable* var = new RegisterVariable(name, type);
         this->table.variables.Add(name, var);
-        this->funcDefinition->allocationSet.push_back(var);
+        funcDefinition->RegisterForAllocation(var);
 
         llvm::Value* varIR = static_cast<llvm::Argument*>(iter);
         var->SetValue(varIR);
@@ -149,15 +139,7 @@ void FunctionNode::Generate(CompileContext& context)
     context.currentFunction = funcDefinition;
 
     // Allocate and initialize
-    for (Variable* var : funcDefinition->allocationSet)
-    {
-        var->Allocate(context);
-    }
-
-    for (Variable* var : funcDefinition->allocationSet)
-    {
-        var->Initialize(context);
-    }
+    funcDefinition->AllocateAndInitialize(context);
 
     // Recurse
     ContextingNode::Generate(context);
@@ -177,7 +159,7 @@ void FunctionNode::Generate(CompileContext& context)
         else
         {
             // No return in a non-void function
-            std::cerr << "Error: no return statement in function '" << funcDefinition->GetName() << "' that expects a return value." << std::endl;
+            Error("no return statement in function '", funcDefinition->GetName(), "' that expects a return value.");
             return;
         }
     }
@@ -194,20 +176,12 @@ void FunctionNode::Generate(CompileContext& context)
 Ptr<IdentifierNode> FuncParameterNode::GetIdentifier() const
 {
     auto val = SafeGet<IdentifierNode>(1, "IdentifierNode");
-    if (val == nullptr)
-    {
-        std::cerr << "Internal Error: invalid identifier node for FuncParameterNode" << std::endl;
-    }
     return val;
 }
 
 Ptr<TypeNode> FuncParameterNode::GetParamType() const
 {
     auto val = SafeGet<TypeNode>(0, "TypeNode");
-    if (val == nullptr)
-    {
-        std::cerr << "Internal Error: invalid type node for FuncParameterNode" << std::endl;
-    }
     return val;
 }
 
@@ -217,11 +191,7 @@ void FuncParamListNode::Process()
 
     for (auto param : customChildren)
     {
-        if (param->GetType() != "FuncParameterNode")
-        {
-            std::cerr << "Internal Error: invalid node type in parameter list" << std::endl;
-            continue;
-        }
+        Assert(param->GetType() == "FuncParameterNode", "invalid parameter list node");
 
         Ptr<FuncParameterNode> p = PtrCast<FuncParameterNode>(param);
         this->params.push_back(p);

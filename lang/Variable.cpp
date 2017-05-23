@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "CompileContext.h"
+#include "Errors.h"
 
 RegisterVariable::RegisterVariable(std::string name, LangType* type) : Variable(name, type),
     updater()
@@ -13,20 +14,10 @@ RegisterVariable::RegisterVariable(std::string name, LangType* type) : Variable(
 
 void RegisterVariable::SetValue(llvm::Value* value)
 {
-    if (value == nullptr)
-    {
-        std::cerr << "Internal Error: null variable IR value" << std::endl;
-        return;
-    }
-
-    if (type->GetIR() != value->getType())
-    {
-        std::cerr <<  "Internal Error: mismatched variable type in RegisterVariable" << std::endl;
-        return;
-    }
+    Assert(value != nullptr, "null variable IR value");
+    Assert(type->GetIR() == value->getType(), "mismatched variable IR type in RegisterVariable");
 
     baseValue = value;
-    //updater.AddAvailableValue(currentBB, value);
 }
 
 llvm::Value* RegisterVariable::GetValue(CompileContext& context) const
@@ -46,7 +37,7 @@ void RegisterVariable::Assign(const RValue& newValue, CompileContext& context) c
     LangType* valType = newValue.GetType();
     if (!type->IsAssignableFrom(*valType))
     {
-        std::cerr << "Error: cannot assign a value of type '" << valType->GetName() << "' to variable '" << name << "' of type '" << type->GetName() << "'" << std::endl;
+        Error("cannot assign a value of type '", valType->GetName(), "' to variable '", name, "' with type '", type->GetName(), "'");
         return;
     }
 
@@ -71,11 +62,7 @@ MemoryVariable::MemoryVariable(std::string name, LangType* type) : Variable(name
 
 llvm::Value* MemoryVariable::GetValue(CompileContext& context) const
 {
-    if (ptr == nullptr)
-    {
-        std::cerr << "Internal Error: null pointer in MemoryVariable" << std::endl;
-        return nullptr;
-    }
+    Assert(ptr != nullptr, "null pointer in MemoryVariable");
 
     return context.builder.CreateLoad(ptr, name + "_val");
 }
@@ -85,9 +72,7 @@ void MemoryVariable::Assign(const RValue& newValue, CompileContext& context) con
     LangType* newType = newValue.GetType();
     if (!type->IsAssignableFrom(*newType))
     {
-        std::cerr << "Error: cannot assign a value of type '" << newType->GetName() <<
-            "' to variable '" << name << "' with type '" << type->GetName() << "'"
-            << std::endl;
+        Error("cannot assign a value of type '", newType->GetName(), "' to variable '", name, "' with type '", type->GetName(), "'");
         return;
     }
 

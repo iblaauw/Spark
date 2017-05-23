@@ -55,8 +55,7 @@ void TypeNode::VerifyTypes(CompileContext& context)
 
     if (type == nullptr)
     {
-        std::cerr << "Error: unknown type '" << val << "'" << std::endl;
-        type = symbols->types.Get("int");
+        Error("unknown type '", val, "'");
     }
 }
 

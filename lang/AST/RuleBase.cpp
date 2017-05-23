@@ -29,7 +29,7 @@ void CustomNode::Generate(CompileContext& context)
 
 UnknownPtr<RValue> CustomNode::Evaluate(CompileContext& context)
 {
-    std::cerr << "Error: node '" << name << "' cannot be evaluated." << std::endl;
+    Assert(false, "node '", name, "' cannot be evaluated.");
     return nullptr;
 }
 

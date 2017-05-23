@@ -56,7 +56,7 @@ UnknownPtr<RValue> FuncCallNode::Evaluate(CompileContext& context)
 
     if (func == nullptr)
     {
-        std::cerr << "Error: a function named '" << funcName << "' could not be found." << std::endl;
+        Error("a function named '", funcName, "' could not be found.");
         return nullptr;
     }
 
@@ -85,8 +85,8 @@ bool FuncCallNode::IsCompatible(const std::vector<UnknownPtr<RValue>>& args, Fun
     const auto& paramTypes = func->ParameterTypes();
     if (args.size() != paramTypes.size())
     {
-        std::cerr << "Error: wrong number of arguments to call function '" << func->GetName() << "'" << std::endl;
-        std::cerr << "Expected " << paramTypes.size() << " arguments but recieved " << args.size() << std::endl;
+        Error("wrong number of arguments to call function '", func->GetName(), "'\n",
+                "Expected ", paramTypes.size(), " arguments but recieved ", args.size());
         return false;
     }
 
@@ -101,8 +101,8 @@ bool FuncCallNode::IsCompatible(const std::vector<UnknownPtr<RValue>>& args, Fun
 
         if (!p->IsAssignableFrom(*a))
         {
-            std::cerr << "Error: invalid argument " << i << " for calling '" << func->GetName() << "'" << std::endl;
-            std::cerr << "Cannot convert from type '" << a->GetName() << "' to '" << p->GetName() << "'" << std::endl;
+            Error("invalid argument ", i, " when calling '", func->GetName(), "'\n",
+                    "Cannot convert from type '", a->GetName(), "' to '", p->GetName(), "'");
             return false;
         }
     }

@@ -12,12 +12,7 @@ RULE(ExpressionStatement)
 
 void ExpressionStatementNode::Generate(CompileContext& context)
 {
-    if (customChildren.size() != 1)
-    {
-        std::cerr << "Internal Error: Empty or invalid expression statement" << std::endl;
-        return;
-    }
-
+    Assert(customChildren.size() == 1, "empty or invalid expression statement");
     customChildren[0]->Evaluate(context);
 }
 

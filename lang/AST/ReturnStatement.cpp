@@ -28,21 +28,13 @@ void ReturnStatementNode::Process()
 
 void ReturnStatementNode::Generate(CompileContext& context)
 {
-    if (context.currentFunction == nullptr)
-    {
-        std::cerr << "Internal Error: Return statement not inside a function" << std::endl;
-        return;
-    }
+    Assert(context.currentFunction != nullptr, "return statement not inside a function");
 
     LangType* retType = context.currentFunction->ReturnType();
 
     size_t size = customChildren.size();
 
-    if (size > 1)
-    {
-        std::cerr << "Internal Error: Return statement with multiple expressions" << std::endl;
-        return;
-    }
+    Assert(size <= 1, "return statement with multiple expressions");
 
     LangType* voidType = context.symbolTable->types.Get("void");
 
@@ -50,7 +42,7 @@ void ReturnStatementNode::Generate(CompileContext& context)
     {
         if (size == 1)
         {
-            std::cerr << "Error: a function with 'void' return type cannot return a value" << std::endl;
+            Error("a function with a 'void' return type cannot return a value");
             return;
         }
 
@@ -60,8 +52,7 @@ void ReturnStatementNode::Generate(CompileContext& context)
 
     if (size == 0)
     {
-        std::cerr << "Error: empty return statement in function that returns '" <<
-            retType->GetName() << "'" << std::endl;
+        Error("empty return statement in function that returns '", retType->GetName(), "'");
         return;
     }
 
@@ -69,8 +60,7 @@ void ReturnStatementNode::Generate(CompileContext& context)
     LangType* exprType = result->GetType();
     if (!retType->IsAssignableFrom(*exprType))
     {
-        std::cerr << "Error: cannot return a value of type '" << exprType->GetName()
-            << "' in function that returns '" << retType->GetName() << "'" << std::endl;
+        Error("cannot return a value of type '", exprType->GetName(), "' in function that returns '", retType->GetName(), "'");
         return;
     }
 

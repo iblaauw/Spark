@@ -15,18 +15,7 @@ RULE(VariableDeclaration)
 void VariableDeclareNode::GatherSymbols(CompileContext& context)
 {
     auto typeNode = SafeGet<TypeNode>(0, "TypeNode");
-    if (typeNode == nullptr)
-    {
-        std::cerr << "Internal Error: invalid type node in VariableDeclaration" << std::endl;
-        return;
-    }
-
     auto idNode = SafeGet<IdentifierNode>(1, "IdentifierNode");
-    if (idNode == nullptr)
-    {
-        std::cerr << "Internal Error: invalid identifier node in VariableDeclaration" << std::endl;
-        return;
-    }
 
     LangType* type = typeNode->GetIRType();
     std::string name = idNode->GetValue();
@@ -34,13 +23,9 @@ void VariableDeclareNode::GatherSymbols(CompileContext& context)
     variable = new MemoryVariable(name, type);
     context.symbolTable->variables.Add(name, variable);
 
-    if (context.currentFunction == nullptr)
-    {
-        std::cerr << "Internal Error: no current function in context of VariableDeclaration" << std::endl;
-        return;
-    }
+    Assert(context.currentFunction != nullptr, "no current function found");
 
-    context.currentFunction->allocationSet.push_back(variable);
+    context.currentFunction->RegisterForAllocation(variable);
 }
 
 void VariableDeclareNode::Generate(CompileContext& context)

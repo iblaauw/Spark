@@ -78,7 +78,7 @@ void OperatorNode::Process()
     }
     else
     {
-        std::cerr << "Internal Error: unknown operator '" << op << "'" << std::endl;
+        Assert(false, "unknown operator '", op, "'");
     }
 }
 
