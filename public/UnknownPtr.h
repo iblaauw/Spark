@@ -16,6 +16,14 @@ public:
     T* Get() { return is_raw ? ptr : sptr.get(); }
     const T* Get() const { return is_raw ? ptr : sptr.get(); }
 
+    template <class U>
+    UnknownPtr<U> Cast()
+    {
+        if (is_raw)
+            return UnknownPtr<U>(static_cast<U*>(ptr));
+        return UnknownPtr<U>(PtrCast<U>(sptr));
+    }
+
     T& operator*()
     {
         if (is_raw)

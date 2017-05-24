@@ -37,6 +37,12 @@ void RegisterVariable::Assign(llvm::Value* value, CompileContext& context) const
     updater.AddAvailableValue(currentBB, value);
 }
 
+llvm::Value* RegisterVariable::GetAddress(CompileContext& context)
+{
+    Assert(false, "cannot get address of a RegisterVariable");
+    return nullptr;
+}
+
 void RegisterVariable::Allocate(CompileContext& context)
 {
     Assert(baseValue != nullptr, "RegisterValue never had 'SetValue' called");
@@ -71,8 +77,11 @@ void MemoryVariable::Assign(llvm::Value* value, CompileContext& context) const
     context.builder.CreateStore(value, ptr);
 }
 
+llvm::Value* MemoryVariable::GetAddress(CompileContext& context) { return ptr; }
+
 void MemoryVariable::Allocate(CompileContext& context)
 {
+    Assert(type != nullptr, "null type in MemoryVariable");
     llvm::Value* val = context.builder.CreateAlloca(type->GetIR(), nullptr, name);
     this->ptr = val;
 }

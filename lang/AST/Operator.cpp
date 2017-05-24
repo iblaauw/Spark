@@ -2,6 +2,8 @@
 
 #include <functional>
 
+using LangTypePtr = UnknownPtr<LangType>;
+
 RULE(Operator)
 {
     Autoname(builder);
@@ -11,6 +13,13 @@ RULE(Operator)
     builder.Add("/");
 
     builder.SetNodeType<OperatorNode>();
+}
+
+RULE(UnaryPreOperator)
+{
+    Autoname(builder);
+    builder.Add("*");
+    builder.Add("&");
 }
 
 class OperatorImpl
@@ -91,5 +100,101 @@ llvm::Value* OperatorNode::Create(llvm::Value* lhs, llvm::Value* rhs, CompileCon
 {
     return impl->value(lhs, rhs, context);
 }
+
+//****  UNARY PRE  ****//
+
+class UnaryOperatorImpl
+{
+public:
+    //std::function<LangTypePtr(LangTypePtr, CompileContext&)> type;
+    std::function<UnknownPtr<RValue>(UnknownPtr<RValue>, CompileContext&)> value;
+};
+
+//static LangTypePtr PointerDerefType(LangTypePtr type, CompileContext& context)
+//{
+//    if (!type->IsPointer())
+//        return nullptr;
+//
+//    auto ptrType = type.Cast<PointerType>();
+//    return ptrType->GetSubType();
+//}
+//
+//static LangTypePtr AddrOfType(LangTypePtr type, CompileContext& context)
+//{
+//    return type->GetPointerTo();
+//}
+
+static UnknownPtr<RValue> PointerDeref(UnknownPtr<RValue> rval, CompileContext& context)
+{
+    LangType* type = rval->GetType();
+    if (!type->IsPointer())
+    {
+        Error("Cannot dereference a value that isn't a pointer.\n Expected pointer but received type '", type->GetName(), "'");
+        return nullptr;
+    }
+
+    PointerType* ptrType = static_cast<PointerType*>(type);
+    LangType* resultType = ptrType->GetSubType();
+
+    llvm::Value* result = rval->GetValue(context);
+    if (result == nullptr)
+        return nullptr;
+
+    Ptr<PointerLValue> lval_result = std::make_shared<PointerLValue>(result, resultType);
+    return PtrCast<RValue>(lval_result);
+}
+
+static UnknownPtr<RValue> AddrOfValue(UnknownPtr<RValue> rval, CompileContext& context)
+{
+    if (!rval->IsLValue())
+    {
+        Error("Can only find the address of a variable or valid l-value");
+        return nullptr;
+    }
+
+    UnknownPtr<LValue> lval = rval.Cast<LValue>();
+    if (!lval->HasAddress())
+    {
+        Error("Cannot find the address of this value, it might not reside in memory.");
+        return nullptr;
+    }
+
+    llvm::Value* result = lval->GetAddress(context);
+    LangType* resultType = lval->GetType()->GetPointerTo();
+    auto resultValue = std::make_shared<GeneralRValue>(result, resultType);
+    return PtrCast<RValue>(resultValue);
+}
+
+void UnaryPreOperatorNode::Process()
+{
+    StringValueNode::Process();
+
+    std::string val = GetValue();
+    impl = std::make_shared<UnaryOperatorImpl>();
+
+    if (val == "*")
+    {
+        impl->value = PointerDeref;
+    }
+    else if (val == "&")
+    {
+        impl->value = AddrOfValue;
+    }
+    else
+    {
+        Assert(false, "Unknown unary operator '", val, "'");
+    }
+}
+
+
+UnknownPtr<RValue> UnaryPreOperatorNode::Create(UnknownPtr<RValue> rhs, CompileContext& context)
+{
+    Assert(impl != nullptr, "null impl");
+    return impl->value(rhs, context);
+}
+
+
+
+
 
 

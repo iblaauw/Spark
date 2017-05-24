@@ -2,11 +2,6 @@
 
 #include "llvm/IR/DerivedTypes.h"
 
-Ptr<LangType> LangType::GetPointerTo()
-{
-    return std::shared_ptr<LangType>(new PointerType(this));
-}
-
 BasicType::BasicType(std::string name) : name(name) {}
 
 bool BasicType::IsAssignableFrom(LangType* otherType) const

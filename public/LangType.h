@@ -2,12 +2,16 @@
 
 #include "llvm/IR/Type.h"
 #include "PtrUtils.h"
+#include "SpecialTypeCache.h"
 
 class CompileContext;
 
 class LangType
 {
+private:
+    SpecialTypeCache cache;
 public:
+    LangType() : cache(this) {}
     virtual ~LangType() {}
     virtual std::string GetName() const = 0;
     virtual llvm::Type* GetIR() const = 0;
@@ -17,7 +21,7 @@ public:
     virtual bool IsAssignableFrom(LangType* otherType) const = 0;
     virtual void InsertConversion(LangType* fromType, CompileContext& context) const = 0;
 
-    Ptr<LangType> GetPointerTo();
+    LangType* GetPointerTo() { return cache.GetPointer(); }
 
     // TODO: add inheritance and const-ness
     // TODO: add a map of members
@@ -57,6 +61,6 @@ public:
 
     LangType* GetSubType() const { return subType; }
 
-    friend class LangType;
+    friend class SpecialTypeCache;
 };
 

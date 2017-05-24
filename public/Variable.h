@@ -32,6 +32,9 @@ public:
     llvm::Value* GetValue(CompileContext& context) const override;
     void Assign(llvm::Value* value, CompileContext& context) const override;
 
+    bool HasAddress() const override { return false; }
+    llvm::Value* GetAddress(CompileContext& context) override;
+
     void Allocate(CompileContext& context) override;
     void Initialize(CompileContext& context) override;
 };
@@ -44,6 +47,9 @@ public:
 
     llvm::Value* GetValue(CompileContext& context) const override;
     void Assign(llvm::Value* value, CompileContext& context) const override;
+
+    bool HasAddress() const override { return true; }
+    llvm::Value* GetAddress(CompileContext& context) override;
 
     void Allocate(CompileContext& context) override;
     void Initialize(CompileContext& context) override;

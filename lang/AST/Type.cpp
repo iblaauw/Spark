@@ -8,7 +8,7 @@ public:
     TypeModifierNode(std::vector<NodePtr>& nodes) : StringValueNode(nodes) {}
     std::string GetType() const override { return "TypeModifierNode"; }
 
-    UnknownPtr<LangType> Modify(UnknownPtr<LangType> original);
+    LangType* Modify(LangType* original);
 };
 
 class TypeModifierSetNode : public ChainingNode
@@ -17,7 +17,7 @@ public:
     TypeModifierSetNode(std::vector<NodePtr>& nodes) : ChainingNode(nodes) {}
     std::string GetType() const override { return "TypeModifierSetNode"; }
 
-    UnknownPtr<LangType> Modify(UnknownPtr<LangType> original);
+    LangType* Modify(LangType* original);
 };
 
 RULE(TypeModifier)
@@ -43,7 +43,7 @@ RULE(Type)
     builder.SetNodeType<TypeNode>();
 }
 
-UnknownPtr<LangType> TypeModifierNode::Modify(UnknownPtr<LangType> original)
+LangType* TypeModifierNode::Modify(LangType* original)
 {
     std::string val = GetValue();
     if (val == "*")
@@ -55,7 +55,7 @@ UnknownPtr<LangType> TypeModifierNode::Modify(UnknownPtr<LangType> original)
     return nullptr;
 }
 
-UnknownPtr<LangType> TypeModifierSetNode::Modify(UnknownPtr<LangType> original)
+LangType* TypeModifierSetNode::Modify(LangType* original)
 {
     for (unsigned int i = 0; i < customChildren.size(); i++)
     {
