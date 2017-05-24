@@ -51,14 +51,14 @@ template <class T>
 LangType* _CreateType(std::string name)
 {
     llvm::Type* type = Spark::TypeConverter::Get<T>();
-    LangType* lt = new LangType(name);
+    BasicType* lt = new BasicType(name);
     lt->SetIR(type);
     return lt;
 }
 
 LangType* _CreateStringType()
 {
-    LangType* lt = new LangType("string");
+    BasicType* lt = new BasicType("string");
 
     llvm::Type* type = Spark::TypeConverter::Get<char>();
     type = type->getPointerTo();

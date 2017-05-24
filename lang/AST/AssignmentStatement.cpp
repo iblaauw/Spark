@@ -34,7 +34,7 @@ void AssignmentStatementNode::Generate(CompileContext& context)
     auto ltype = lval->GetType();
     auto rtype = rhs->GetType();
 
-    if (!ltype->IsAssignableFrom(*rtype))
+    if (!ltype->IsAssignableFrom(rtype))
     {
         Error("cannot assign a value of type '", rtype->GetName(), "' to l-value of type '", ltype->GetName(), "'");
         return;

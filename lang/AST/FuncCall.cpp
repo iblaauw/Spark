@@ -99,7 +99,7 @@ bool FuncCallNode::IsCompatible(const std::vector<UnknownPtr<RValue>>& args, Fun
         LangType* a = argTypes[i];
         LangType* p = paramTypes[i];
 
-        if (!p->IsAssignableFrom(*a))
+        if (!p->IsAssignableFrom(a))
         {
             Error("invalid argument ", i, " when calling '", func->GetName(), "'\n",
                     "Cannot convert from type '", a->GetName(), "' to '", p->GetName(), "'");

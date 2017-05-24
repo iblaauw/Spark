@@ -2,6 +2,7 @@
 
 #include "AST/RuleBase.h"
 #include "AST/Common.h"
+#include "AST/Type.h"
 #include "AST/ContextingNode.h"
 #include "Function.h"
 

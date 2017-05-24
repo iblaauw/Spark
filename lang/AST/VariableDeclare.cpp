@@ -1,6 +1,7 @@
 #include "AST/VariableDeclare.h"
 
 #include "AST/Common.h"
+#include "AST/Type.h"
 
 RULE(VariableDeclaration)
 {

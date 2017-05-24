@@ -58,7 +58,7 @@ void ReturnStatementNode::Generate(CompileContext& context)
 
     auto result = customChildren[0]->Evaluate(context);
     LangType* exprType = result->GetType();
-    if (!retType->IsAssignableFrom(*exprType))
+    if (!retType->IsAssignableFrom(exprType))
     {
         Error("cannot return a value of type '", exprType->GetName(), "' in function that returns '", retType->GetName(), "'");
         return;
