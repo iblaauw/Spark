@@ -2,13 +2,6 @@
 
 #include "AST/Common.h"
 
-class TypeBaseNode : public StringValueNode
-{
-public:
-    TypeBaseNode(std::vector<NodePtr>& nodes) : StringValueNode(nodes) {}
-    std::string GetType() const override { return "TypeBaseNode"; }
-};
-
 class TypeModifierNode : public StringValueNode
 {
 public:
@@ -26,13 +19,6 @@ public:
 
     UnknownPtr<LangType> Modify(UnknownPtr<LangType> original);
 };
-
-RULE(TypeBase)
-{
-    Autoname(builder);
-    builder.AddString(Alpha);
-    builder.SetNodeType<TypeBaseNode>();
-}
 
 RULE(TypeModifier)
 {
@@ -52,7 +38,7 @@ RULE(TypeModifierSet)
 RULE(Type)
 {
     Autoname(builder);
-    builder.Add(TypeBase, TypeModifierSet); // Note: NO whitespace allowed here
+    builder.Add(Identifier, TypeModifierSet); // Note: NO whitespace allowed here
 
     builder.SetNodeType<TypeNode>();
 }
@@ -81,7 +67,7 @@ UnknownPtr<LangType> TypeModifierSetNode::Modify(UnknownPtr<LangType> original)
 
 void TypeNode::VerifyTypes(CompileContext& context)
 {
-    auto baseNode = SafeGet<TypeBaseNode>(0, "TypeBaseNode");
+    auto baseNode = SafeGet<IdentifierNode>(0, "IdentifierNode");
     auto modifierSet = SafeGet<TypeModifierSetNode>(1, "TypeModifierSetNode");
 
     std::string baseName = baseNode->GetValue();

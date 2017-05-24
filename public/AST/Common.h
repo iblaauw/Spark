@@ -2,17 +2,23 @@
 
 #include "AST/RuleBase.h"
 
-CHARSET(Alpha);
 RULE(Whitespace);
 RULE(OptionalWhitespace);
 RULE(Identifier);
 
 RULE(Type); // defined fully in AST/Type.h
 
-class IdentifierNode : public StringValueNode
+class IdentifierNode : public CustomNode
 {
+private:
+    std::string value;
 public:
-    IdentifierNode(std::vector<NodePtr>& nodes) : StringValueNode(nodes) {}
+    IdentifierNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
     std::string GetType() const override { return "IdentifierNode"; }
+
+    void Process() override;
+
+    std::string GetValue() const { return value; }
+
 };
 
