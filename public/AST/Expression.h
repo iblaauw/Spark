@@ -20,6 +20,11 @@ public:
     std::string GetType() const override { return "ExpressionTreeNode"; }
 
     UnknownPtr<RValue> Evaluate(CompileContext& context) override;
+private:
+    UnknownPtr<RValue> EvalSimple(CompileContext& context);
+    UnknownPtr<RValue> EvalBinary(CompileContext& context);
+    UnknownPtr<RValue> EvalUnaryPre(CompileContext& context);
+    //UnknownPtr<RValue> EvalUnaryPost(CompileContext& context);
 };
 
 

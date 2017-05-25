@@ -22,6 +22,7 @@ RULE(ExpressionTree)
 {
     Autoname(builder);
     builder.Add(Expression, OptionalWhitespace, Operator, OptionalWhitespace, ExpressionTree);
+    builder.Add(UnaryPreOperator, OptionalWhitespace, ExpressionTree);
     builder.Add(Expression);
 
     builder.Ignore(1);
@@ -40,18 +41,40 @@ UnknownPtr<RValue> ExpressionNode::Evaluate(CompileContext& context)
 
 UnknownPtr<RValue> ExpressionTreeNode::Evaluate(CompileContext& context)
 {
+
+    if (customChildren.size() == 3)
+    {
+        return EvalBinary(context);
+    }
+    else if (customChildren.size() == 2)
+    {
+        return EvalUnaryPre(context);
+    }
+    else if (customChildren.size() == 1)
+    {
+        return EvalSimple(context);
+    }
+
     Assert(customChildren.size() != 0, "empty expression");
+    return nullptr;
+}
+
+UnknownPtr<RValue> ExpressionTreeNode::EvalSimple(CompileContext& context)
+{
+    Assert(customChildren.size() == 1, "invalid expression leaf");
+    auto expr = customChildren[0]->Evaluate(context);
+    return expr;
+}
+
+UnknownPtr<RValue> ExpressionTreeNode::EvalBinary(CompileContext& context)
+{
+    Assert(customChildren.size() == 3, "invalid binary operator expression");
+
+    Ptr<OperatorNode> op = SafeGet<OperatorNode>(1, "OperatorNode");
 
     auto lhs = customChildren[0]->Evaluate(context);
     if (lhs == nullptr)
         return nullptr;
-
-    if (customChildren.size() == 1)
-        return lhs;
-
-    Ptr<OperatorNode> op = SafeGet<OperatorNode>(1, "OperatorNode");
-
-    Assert(customChildren.size() >= 3, "missing portion of expression tree");
 
     auto rhs = customChildren[2]->Evaluate(context);
     if (rhs == nullptr)
@@ -72,5 +95,18 @@ UnknownPtr<RValue> ExpressionTreeNode::Evaluate(CompileContext& context)
     llvm::Value* resultValue = op->Create(lval, rval, context);
     auto finalResult = std::make_shared<GeneralRValue>(resultValue, resultType);
     return PtrCast<RValue>(finalResult);
+}
+
+UnknownPtr<RValue> ExpressionTreeNode::EvalUnaryPre(CompileContext& context)
+{
+    Assert(customChildren.size() == 2, "invalid unary prefix operator expression");
+
+    Ptr<UnaryPreOperatorNode> op = SafeGet<UnaryPreOperatorNode>(0, "UnaryPreOperatorNode");
+
+    auto rhs = customChildren[1]->Evaluate(context);
+    if (rhs == nullptr)
+        return nullptr;
+
+    return op->Create(rhs, context);
 }
 

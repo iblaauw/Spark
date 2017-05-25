@@ -20,6 +20,8 @@ RULE(UnaryPreOperator)
     Autoname(builder);
     builder.Add("*");
     builder.Add("&");
+
+    builder.SetNodeType<UnaryPreOperatorNode>();
 }
 
 class OperatorImpl

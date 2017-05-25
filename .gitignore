@@ -4,6 +4,7 @@ build/
 temp/
 
 input.txt
+input2.txt
 out.txt
 
 *.swp
