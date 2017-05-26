@@ -31,7 +31,5 @@ public:
     std::string GetType() const override { return "UnaryPreOperatorNode"; }
     void Process() override;
 
-    //LangType* GetResultType(LangType* rhs, CompileContext& context); // return nullptr if incompatible
-    //llvm::Value* Create(llvm::Value* rhs, CompileContext& context);
     UnknownPtr<RValue> Create(UnknownPtr<RValue> rhs, CompileContext& context);
 };

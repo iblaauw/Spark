@@ -155,12 +155,6 @@ static UnknownPtr<RValue> AddrOfValue(UnknownPtr<RValue> rval, CompileContext& c
     }
 
     UnknownPtr<LValue> lval = rval.Cast<LValue>();
-    if (!lval->HasAddress())
-    {
-        Error("Cannot find the address of this value, it might not reside in memory.");
-        return nullptr;
-    }
-
     llvm::Value* result = lval->GetAddress(context);
     LangType* resultType = lval->GetType()->GetPointerTo();
     auto resultValue = std::make_shared<GeneralRValue>(result, resultType);

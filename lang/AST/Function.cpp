@@ -112,7 +112,7 @@ void FunctionNode::GatherSymbols(CompileContext& context)
         LangType* type = paramTypes[i];
         std::string name = paramNames[i];
 
-        RegisterVariable* var = new RegisterVariable(name, type);
+        ParameterVariable* var = new ParameterVariable(name, type);
         this->table.variables.Add(name, var);
         funcDefinition->RegisterForAllocation(var);
 

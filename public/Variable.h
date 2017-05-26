@@ -20,24 +20,24 @@ public:
     virtual void Initialize(CompileContext& context) = 0;
 };
 
-class RegisterVariable : public Variable
-{
-    mutable llvm::SSAUpdater updater;
-    llvm::Value* baseValue;
-public:
-    RegisterVariable(std::string name, LangType* type);
-
-    void SetValue(llvm::Value* value);
-
-    llvm::Value* GetValue(CompileContext& context) const override;
-    void Assign(llvm::Value* value, CompileContext& context) const override;
-
-    bool HasAddress() const override { return false; }
-    llvm::Value* GetAddress(CompileContext& context) override;
-
-    void Allocate(CompileContext& context) override;
-    void Initialize(CompileContext& context) override;
-};
+//class RegisterVariable : public Variable
+//{
+//    mutable llvm::SSAUpdater updater;
+//    llvm::Value* baseValue;
+//public:
+//    RegisterVariable(std::string name, LangType* type);
+//
+//    void SetValue(llvm::Value* value);
+//
+//    llvm::Value* GetValue(CompileContext& context) const override;
+//    void Assign(llvm::Value* value, CompileContext& context) const override;
+//
+//    bool HasAddress() const override { return false; }
+//    llvm::Value* GetAddress(CompileContext& context) override;
+//
+//    void Allocate(CompileContext& context) override;
+//    void Initialize(CompileContext& context) override;
+//};
 
 class MemoryVariable : public Variable
 {
@@ -48,10 +48,19 @@ public:
     llvm::Value* GetValue(CompileContext& context) const override;
     void Assign(llvm::Value* value, CompileContext& context) const override;
 
-    bool HasAddress() const override { return true; }
     llvm::Value* GetAddress(CompileContext& context) override;
 
     void Allocate(CompileContext& context) override;
+    void Initialize(CompileContext& context) override;
+};
+
+class ParameterVariable : public MemoryVariable
+{
+    llvm::Value* param;
+public:
+    ParameterVariable(std::string name, LangType* type);
+
+    void SetValue(llvm::Value* value);
     void Initialize(CompileContext& context) override;
 };
 

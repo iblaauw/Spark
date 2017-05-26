@@ -22,7 +22,6 @@ public:
     virtual bool IsLValue() const override { return true; }
 
     virtual void Assign(llvm::Value* value, CompileContext& context) const = 0;
-    virtual bool HasAddress() const = 0;
     virtual llvm::Value* GetAddress(CompileContext& context) = 0;
 };
 
@@ -50,7 +49,6 @@ public:
     LangType* GetType() const override { return type; }
 
     void Assign(llvm::Value* value, CompileContext& context) const override;
-    bool HasAddress() const override { return true; }
     llvm::Value* GetAddress(CompileContext& context) override { return ptr; }
 };
 
