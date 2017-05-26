@@ -2,21 +2,32 @@
 
 #include <iostream>
 
+#include "AST/Comment.h"
+
 CHARSET(WhitespaceChar)
 {
     return c == ' ' || c == '\n' || c == '\r' || c == '\t';
 }
 
-RULE(Whitespace)
+RULE(NormalWhitespace)
 {
     Autoname(builder);
     builder.AddString(WhitespaceChar);
 }
 
+RULE(Whitespace)
+{
+    Autoname(builder);
+    builder.Add(Comment, Whitespace);
+    builder.Add(NormalWhitespace, Comment, Whitespace);
+    builder.Add(Comment);
+    builder.Add(NormalWhitespace);
+}
+
 RULE(OptionalWhitespace)
 {
     Autoname(builder);
-    builder.AddString(WhitespaceChar);
+    builder.Add(Whitespace);
     builder.AddEmpty();
 }
 
