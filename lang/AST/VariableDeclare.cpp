@@ -2,16 +2,27 @@
 
 #include "AST/Common.h"
 #include "AST/Type.h"
+#include "AST/Expression.h"
 
 RULE(VariableDeclaration)
 {
     Autoname(builder);
     builder.Add(Type, Whitespace, Identifier, ';');
+    builder.Add(Type, Whitespace, Identifier, OptionalWhitespace, '=', OptionalWhitespace, ExpressionTree, ';');
     builder.Ignore(1);
     builder.Ignore(3);
+    builder.Ignore(5);
+    builder.Ignore(7);
 
     builder.SetNodeType<VariableDeclareNode>();
 }
+
+RULE(VariableDeclareDefine)
+{
+    Autoname(builder);
+    builder.Add(Type, Whitespace, Identifier, OptionalWhitespace, '=', ExpressionTree, ';');
+}
+
 
 void VariableDeclareNode::GatherSymbols(CompileContext& context)
 {
@@ -31,9 +42,23 @@ void VariableDeclareNode::GatherSymbols(CompileContext& context)
 
 void VariableDeclareNode::Generate(CompileContext& context)
 {
-    // These are now handled by function allocation
-    //llvm::Value* val = context.builder.CreateAlloca(variable->GetType()->GetIR(), nullptr, variable->GetName());
-    //variable->SetValue(val);
+    if (customChildren.size() <= 2)
+        return;
+
+    UnknownPtr<RValue> rhs = customChildren[2]->Evaluate(context);
+    if (rhs == nullptr)
+        return;
+
+    LangType* ltype = variable->GetType();
+    LangType* rtype = rhs->GetType();
+    if (!ltype->IsAssignableFrom(rtype))
+    {
+        Error("cannot assign a value of type '", rtype->GetName(), "' to l-value of type '", ltype->GetName(), "'");
+        return;
+    }
+
+    auto rval = rhs->GetValue(context);
+    variable->Assign(rval, context);
 }
 
 

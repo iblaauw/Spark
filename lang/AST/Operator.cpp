@@ -7,10 +7,14 @@ using LangTypePtr = UnknownPtr<LangType>;
 RULE(Operator)
 {
     Autoname(builder);
+    builder.Add("==");
+    builder.Add("!=");
     builder.Add("+");
     builder.Add("-");
     builder.Add("*");
     builder.Add("/");
+    builder.Add("<");
+    builder.Add(">");
 
     builder.SetNodeType<OperatorNode>();
 }
@@ -39,6 +43,29 @@ static LangType* IntOnly(LangType* a, LangType* b, CompileContext& context)
     return intType;
 }
 
+static LangType* IntOrBoolCompare(LangType* a, LangType* b, CompileContext& context)
+{
+    LangType* intType = context.symbolTable->types.Get("int");
+    LangType* boolType = context.symbolTable->types.Get("bool");
+    if (a == intType && b == intType)
+        return boolType;
+
+    if (a == boolType && b == boolType)
+        return boolType;
+
+    return nullptr;
+}
+
+static LangType* IntCompare(LangType* a, LangType* b, CompileContext& context)
+{
+    LangType* intType = context.symbolTable->types.Get("int");
+    LangType* boolType = context.symbolTable->types.Get("bool");
+    if (a == intType && b == intType)
+        return boolType;
+
+    return nullptr;
+}
+
 static llvm::Value* PlusVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
 {
     return context.builder.CreateAdd(a, b, "int_add");
@@ -59,6 +86,25 @@ static llvm::Value* DivideVal(llvm::Value* a, llvm::Value* b, CompileContext& co
     return context.builder.CreateSDiv(a,b, "int_div");
 }
 
+static llvm::Value* EqualsVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateICmpEQ(a, b, "equals");
+}
+
+static llvm::Value* NotEqualsVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateICmpNE(a, b, "not_equals");
+}
+
+static llvm::Value* GreaterThanVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateICmpSGT(a, b, "greater");
+}
+
+static llvm::Value* LessThanVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateICmpSLT(a, b, "less");
+}
 
 void OperatorNode::Process()
 {
@@ -86,6 +132,26 @@ void OperatorNode::Process()
     {
         impl->type = IntOnly;
         impl->value = DivideVal;
+    }
+    else if (op == "==")
+    {
+        impl->type = IntOrBoolCompare;
+        impl->value = EqualsVal;
+    }
+    else if (op == "!=")
+    {
+        impl->type = IntOrBoolCompare;
+        impl->value = NotEqualsVal;
+    }
+    else if (op == "<")
+    {
+        impl->type = IntCompare;
+        impl->value = LessThanVal;
+    }
+    else if (op == ">")
+    {
+        impl->type = IntCompare;
+        impl->value = GreaterThanVal;
     }
     else
     {

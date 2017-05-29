@@ -62,6 +62,15 @@ namespace Spark
         return bb;
     }
 
+    llvm::BasicBlock* LLVMManager::AddBlock(std::string name, llvm::Function* func)
+    {
+        if (func->empty())
+            throw SparkException("Error: attempting to add block to unimplemented function.");
+
+        llvm::BasicBlock* bb = llvm::BasicBlock::Create(globalContext, name, func);
+        return bb;
+    }
+
     llvm::GlobalVariable* LLVMManager::CreateGlobalConstant(std::string name, llvm::Constant* value, llvm::GlobalValue::LinkageTypes linkage)
     {
         llvm::GlobalVariable* gvar = new llvm::GlobalVariable(

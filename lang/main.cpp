@@ -26,7 +26,7 @@ int main()
 
     Ptr<CustomNode> root = PtrCast<CustomNode>(tree);
 
-    PrintTree(tree);
+    //PrintTree(tree);
 
     std::cout << std::endl << "Processing..." << std::endl << std::endl;
 
