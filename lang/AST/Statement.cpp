@@ -30,4 +30,16 @@ RULE(StatementBlock)
     builder.SetNodeType<StatementBlockChain>();
 }
 
+RULE(StatementBlockBraced)
+{
+    Autoname(builder);
+    builder.Add('{', OptionalWhitespace, StatementBlock, OptionalWhitespace, '}');
+    builder.Add(Statement);
+
+    builder.Ignore(1);
+    builder.Ignore(3);
+
+    builder.SetNodeType<StatementBlockBracedNode>();
+}
+
 

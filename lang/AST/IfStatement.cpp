@@ -7,8 +7,8 @@
 RULE(IfStatement)
 {
     Autoname(builder);
-    builder.Add("if", OptionalWhitespace, '(', OptionalWhitespace, ExpressionTree, OptionalWhitespace, ')', OptionalWhitespace, '{', OptionalWhitespace, StatementBlock, OptionalWhitespace, '}', OptionalWhitespace, "else", OptionalWhitespace, '{', OptionalWhitespace, StatementBlock, OptionalWhitespace, '}');
-    builder.Add("if", OptionalWhitespace, '(', OptionalWhitespace, ExpressionTree, OptionalWhitespace, ')', OptionalWhitespace, '{', OptionalWhitespace, StatementBlock, OptionalWhitespace, '}');
+    builder.Add("if", OptionalWhitespace, '(', OptionalWhitespace, ExpressionTree, OptionalWhitespace, ')', OptionalWhitespace, StatementBlockBraced, OptionalWhitespace, "else", OptionalWhitespace, StatementBlockBraced);
+    builder.Add("if", OptionalWhitespace, '(', OptionalWhitespace, ExpressionTree, OptionalWhitespace, ')', OptionalWhitespace, StatementBlockBraced);
 
     builder.Ignore(1);
     builder.Ignore(3);
@@ -16,8 +16,6 @@ RULE(IfStatement)
     builder.Ignore(7);
     builder.Ignore(9);
     builder.Ignore(11);
-    builder.Ignore(13);
-    builder.Ignore(15);
 
     builder.SetNodeType<IfStatementNode>();
 }

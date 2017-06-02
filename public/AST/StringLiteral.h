@@ -16,5 +16,9 @@ public:
     UnknownPtr<RValue> Evaluate(CompileContext& context) override;
 
     std::string Get() const { return literal; }
+
+private:
+    static std::string Parse(std::string val);
+    static char GetSpecialValue(char val);
 };
 

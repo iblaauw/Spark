@@ -20,11 +20,10 @@ public:
 RULE(FunctionRule)
 {
     Autoname(builder);
-    builder.Add(Type, Whitespace, Identifier, '(', FunctionParameterList, ')', OptionalWhitespace, '{', OptionalWhitespace, StatementBlock, OptionalWhitespace, '}');
+    builder.Add(Type, Whitespace, Identifier, '(', FunctionParameterList, ')', OptionalWhitespace, StatementBlockBraced);
 
+    builder.Ignore(1);
     builder.Ignore(6);
-    builder.Ignore(8);
-    builder.Ignore(10);
 
     builder.SetNodeType<FunctionNode>();
 }
