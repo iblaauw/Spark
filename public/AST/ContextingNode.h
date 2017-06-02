@@ -15,5 +15,9 @@ public:
     void VerifyTypes(CompileContext& context) override;
     void GatherSymbols(CompileContext& context) override;
     void Generate(CompileContext& context) override;
+
+protected:
+    void Wrap(CompileContext& context);
+    void Unwrap(CompileContext& context);
 };
 

@@ -83,6 +83,7 @@ public:
     SymbolTable(SymbolTable* parent);
 
     void SetParent(SymbolTable* parent);
+    SymbolTable* GetParent() const { return parent; }
 };
 
 

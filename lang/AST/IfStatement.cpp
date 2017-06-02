@@ -23,6 +23,8 @@ RULE(IfStatement)
 
 void IfStatementNode::Generate(CompileContext& context)
 {
+    Wrap(context);
+
     Assert(customChildren.size() >= 2, "Invalid Node Structure");
 
     bool hasElse = customChildren.size() > 2;
@@ -66,9 +68,11 @@ void IfStatementNode::Generate(CompileContext& context)
 
     // Continue to add code after if, but in a new block
     context.builder.SetInsertPoint(bb_cont);
+
+    Unwrap(context);
 }
 
-void IfStatementNode::Subgenerate(int index, llvm::BasicBlock* genBB,
+void IfStatementNode::Subgenerate(unsigned int index, llvm::BasicBlock* genBB,
         llvm::BasicBlock* contBB, CompileContext& context)
 {
     Assert(customChildren.size() > index, "Invalid Node Structure");

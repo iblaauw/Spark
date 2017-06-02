@@ -13,5 +13,5 @@ public:
 
     void Generate(CompileContext& context) override;
 private:
-    void Subgenerate(int index, llvm::BasicBlock* genBB, llvm::BasicBlock* contBB, CompileContext& context);
+    void Subgenerate(unsigned int index, llvm::BasicBlock* genBB, llvm::BasicBlock* contBB, CompileContext& context);
 };

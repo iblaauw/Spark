@@ -20,6 +20,8 @@ RULE(WhileStatement)
 
 void WhileStatementNode::Generate(CompileContext& context)
 {
+    Wrap(context);
+
     Assert(customChildren.size() >= 2, "Invalid Node Structure");
     Assert(context.currentFunction != nullptr, "If statement not inside function");
 
@@ -68,5 +70,7 @@ void WhileStatementNode::Generate(CompileContext& context)
 
     // Continue in the continue section
     context.builder.SetInsertPoint(cont_bb);
+
+    Unwrap(context);
 }
 
