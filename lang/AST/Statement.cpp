@@ -6,12 +6,14 @@
 #include "AST/VariableDeclare.h"
 #include "AST/AssignmentStatement.h"
 #include "AST/IfStatement.h"
+#include "AST/WhileStatement.h"
 
 RULE(Statement)
 {
     Autoname(builder);
     builder.Add(ReturnStatement);
     builder.Add(IfStatement);
+    builder.Add(WhileStatement);
     builder.Add(VariableDeclaration);
     builder.Add(AssignmentStatement);
     builder.Add(ExpressionStatement);

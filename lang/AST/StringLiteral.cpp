@@ -98,6 +98,8 @@ UnknownPtr<RValue> StringLiteralNode::Evaluate(CompileContext& context)
             return '\t';
         case 'r':
             return '\r';
+        case '\\':
+            return '\\';
     }
 
     std::cerr << "Warning: unknown escape sequence '\\" << val << "', ignoring it." << std::endl;

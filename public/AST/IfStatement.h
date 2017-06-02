@@ -12,4 +12,6 @@ public:
     std::string GetType() const override { return "IfStatementNode"; }
 
     void Generate(CompileContext& context) override;
+private:
+    void Subgenerate(int index, llvm::BasicBlock* genBB, llvm::BasicBlock* contBB, CompileContext& context);
 };

@@ -27,6 +27,7 @@ void IfStatementNode::Generate(CompileContext& context)
 
     bool hasElse = customChildren.size() > 2;
 
+    // Recurse condition
     auto condition = customChildren[0]->Evaluate(context);
 
     LangType* ctype = condition->GetType();
@@ -54,28 +55,35 @@ void IfStatementNode::Generate(CompileContext& context)
     llvm::Value* condVal = condition->GetValue(context);
     context.builder.CreateCondBr(condVal, bb_then, bb_else);
 
-    // Recurse
-    context.builder.SetInsertPoint(bb_then);
-    customChildren[1]->Generate(context);
-
-    if (bb_then->getTerminator() == nullptr)
-    {
-        // Branch from the if back to main control flow
-        context.builder.CreateBr(bb_cont);
-    }
+    // Recurse 'if'
+    Subgenerate(1, bb_then, bb_cont, context);
 
     if (hasElse)
     {
-        context.builder.SetInsertPoint(bb_else);
-        customChildren[2]->Generate(context);
-        if (bb_else->getTerminator() == nullptr)
-        {
-            // Branch from the else back to main control flow
-            context.builder.CreateBr(bb_cont);
-        }
+        // Recurse 'else'
+        Subgenerate(2, bb_else, bb_cont, context);
     }
 
     // Continue to add code after if, but in a new block
     context.builder.SetInsertPoint(bb_cont);
 }
+
+void IfStatementNode::Subgenerate(int index, llvm::BasicBlock* genBB,
+        llvm::BasicBlock* contBB, CompileContext& context)
+{
+    Assert(customChildren.size() > index, "Invalid Node Structure");
+
+    context.builder.SetInsertPoint(genBB);
+
+    //Recurse
+    customChildren[index]->Generate(context);
+
+    llvm::BasicBlock* endBlock = context.builder.GetInsertBlock();
+    if (endBlock->getTerminator() == nullptr)
+    {
+        // Branch back to main control flow
+        context.builder.CreateBr(contBB);
+    }
+}
+
 
