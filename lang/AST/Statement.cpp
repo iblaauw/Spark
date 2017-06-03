@@ -7,6 +7,7 @@
 #include "AST/AssignmentStatement.h"
 #include "AST/IfStatement.h"
 #include "AST/WhileStatement.h"
+#include "AST/ForStatement.h"
 
 RULE(Statement)
 {
@@ -14,6 +15,7 @@ RULE(Statement)
     builder.Add(ReturnStatement);
     builder.Add(IfStatement);
     builder.Add(WhileStatement);
+    builder.Add(ForStatement);
     builder.Add(VariableDeclaration);
     builder.Add(AssignmentStatement);
     builder.Add(ExpressionStatement);
