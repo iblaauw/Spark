@@ -9,12 +9,15 @@ RULE(Operator)
     Autoname(builder);
     builder.Add("==");
     builder.Add("!=");
+    builder.Add(">=");
+    builder.Add("<=");
     builder.Add("+");
     builder.Add("-");
     builder.Add("*");
     builder.Add("/");
     builder.Add("<");
     builder.Add(">");
+    builder.Add("%");
 
     builder.SetNodeType<OperatorNode>();
 }
@@ -106,6 +109,21 @@ static llvm::Value* LessThanVal(llvm::Value* a, llvm::Value* b, CompileContext& 
     return context.builder.CreateICmpSLT(a, b, "less");
 }
 
+static llvm::Value* GreaterEqualVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateICmpSGE(a, b, "greater_equal");
+}
+
+static llvm::Value* LessEqualVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateICmpSLE(a, b, "less_equal");
+}
+
+static llvm::Value* ModuloVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateSRem(a, b, "mod");
+}
+
 void OperatorNode::Process()
 {
     StringValueNode::Process();
@@ -153,6 +171,21 @@ void OperatorNode::Process()
         impl->type = IntCompare;
         impl->value = GreaterThanVal;
     }
+    else if (op == "<=")
+    {
+        impl->type = IntCompare;
+        impl->value = LessEqualVal;
+    }
+    else if (op == ">=")
+    {
+        impl->type = IntCompare;
+        impl->value = GreaterEqualVal;
+    }
+    else if (op == "%")
+    {
+        impl->type = IntOnly;
+        impl->value = ModuloVal;
+    }
     else
     {
         Assert(false, "unknown operator '", op, "'");
@@ -174,23 +207,8 @@ llvm::Value* OperatorNode::Create(llvm::Value* lhs, llvm::Value* rhs, CompileCon
 class UnaryOperatorImpl
 {
 public:
-    //std::function<LangTypePtr(LangTypePtr, CompileContext&)> type;
     std::function<UnknownPtr<RValue>(UnknownPtr<RValue>, CompileContext&)> value;
 };
-
-//static LangTypePtr PointerDerefType(LangTypePtr type, CompileContext& context)
-//{
-//    if (!type->IsPointer())
-//        return nullptr;
-//
-//    auto ptrType = type.Cast<PointerType>();
-//    return ptrType->GetSubType();
-//}
-//
-//static LangTypePtr AddrOfType(LangTypePtr type, CompileContext& context)
-//{
-//    return type->GetPointerTo();
-//}
 
 static UnknownPtr<RValue> PointerDeref(UnknownPtr<RValue> rval, CompileContext& context)
 {
