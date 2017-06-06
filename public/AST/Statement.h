@@ -3,6 +3,7 @@
 #include "AST/RuleBase.h"
 
 RULE(Statement);
+RULE(NonControlStatement_NoSemicolon);
 RULE(StatementBlock);
 RULE(StatementBlockBraced);
 

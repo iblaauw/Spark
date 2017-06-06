@@ -6,7 +6,7 @@
 RULE(AssignmentStatement)
 {
     Autoname(builder);
-    builder.Add(ExpressionTree, OptionalWhitespace, '=', OptionalWhitespace, ExpressionTree, ';');
+    builder.Add(ExpressionTree, OptionalWhitespace, '=', OptionalWhitespace, ExpressionTree);
 
     builder.Ignore(1);
     builder.Ignore(3);

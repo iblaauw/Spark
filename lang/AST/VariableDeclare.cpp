@@ -7,20 +7,14 @@
 RULE(VariableDeclaration)
 {
     Autoname(builder);
-    builder.Add(Type, Whitespace, Identifier, ';');
-    builder.Add(Type, Whitespace, Identifier, OptionalWhitespace, '=', OptionalWhitespace, ExpressionTree, ';');
+    builder.Add(Type, Whitespace, Identifier, OptionalWhitespace, '=', OptionalWhitespace, ExpressionTree);
+    builder.Add(Type, Whitespace, Identifier);
+
     builder.Ignore(1);
     builder.Ignore(3);
     builder.Ignore(5);
-    builder.Ignore(7);
 
     builder.SetNodeType<VariableDeclareNode>();
-}
-
-RULE(VariableDeclareDefine)
-{
-    Autoname(builder);
-    builder.Add(Type, Whitespace, Identifier, OptionalWhitespace, '=', ExpressionTree, ';');
 }
 
 

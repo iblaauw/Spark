@@ -16,6 +16,19 @@ RULE(Statement)
     builder.Add(IfStatement);
     builder.Add(WhileStatement);
     builder.Add(ForStatement);
+    builder.Add(VariableDeclaration, OptionalWhitespace, ';');
+    builder.Add(AssignmentStatement, OptionalWhitespace, ';');
+    builder.Add(ExpressionStatement, OptionalWhitespace, ';');
+
+    builder.Ignore(1);
+    builder.Ignore(2);
+
+    builder.SetNodeType<StatementNode>();
+}
+
+RULE(NonControlStatement_NoSemicolon)
+{
+    Autoname(builder);
     builder.Add(VariableDeclaration);
     builder.Add(AssignmentStatement);
     builder.Add(ExpressionStatement);

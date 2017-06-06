@@ -4,7 +4,7 @@ RULE(ExpressionStatement)
 {
     // TODO: fix this, its too lenient
     Autoname(builder);
-    builder.Add(ExpressionTree, ';');
+    builder.Add(ExpressionTree);
     builder.Ignore(1);
 
     builder.SetNodeType<ExpressionStatementNode>();

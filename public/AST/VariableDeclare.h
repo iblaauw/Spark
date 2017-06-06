@@ -4,7 +4,6 @@
 #include "Variable.h"
 
 RULE(VariableDeclaration);
-RULE(VariableDeclareDefine);
 
 class VariableDeclareNode : public CustomNode
 {

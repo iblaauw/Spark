@@ -4,16 +4,34 @@
 #include "AST/Expression.h"
 #include "AST/Statement.h"
 #include "AST/ExpressionStatement.h"
+#include "AST/VariableDeclare.h"
+
+class ForStatementExprNode : public CustomNode
+{
+public:
+    ForStatementExprNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    std::string GetType() const override { return "ForStatementExprNode"; }
+};
+
+RULE(ForStatementExpr)
+{
+    Autoname(builder);
+    builder.Add(NonControlStatement_NoSemicolon);
+    builder.AddEmpty();
+
+    builder.SetNodeType<ForStatementExprNode>();
+}
 
 RULE(ForStatement)
 {
     Autoname(builder);
     builder.Add("for", OptionalWhitespace,
                 "(", OptionalWhitespace,
-                Statement, OptionalWhitespace,
+                ForStatementExpr, OptionalWhitespace,
+                ';', OptionalWhitespace,
                 ExpressionTree, OptionalWhitespace,
                 ';', OptionalWhitespace,
-                Statement, OptionalWhitespace,
+                ForStatementExpr, OptionalWhitespace,
                 ')', OptionalWhitespace,
                 StatementBlockBraced);
 
@@ -24,6 +42,7 @@ RULE(ForStatement)
     builder.Ignore(9);
     builder.Ignore(11);
     builder.Ignore(13);
+    builder.Ignore(15);
 
     builder.SetNodeType<ForStatementNode>();
 }
