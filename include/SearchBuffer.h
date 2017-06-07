@@ -9,6 +9,7 @@ namespace Spark
     private:
         InputBuffer& buffer;
         int index;
+        DebugInfo debugInfo;
     public:
         SearchBuffer(InputBuffer& buffer);
         SearchBuffer(SearchBuffer& other) = default;
@@ -18,5 +19,7 @@ namespace Spark
         char Current() const;
 
         void AdvanceTo(const SearchBuffer& other);
+
+        inline const DebugInfo& GetDebug() const { return debugInfo; }
     };
 }

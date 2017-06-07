@@ -31,15 +31,7 @@ char Spark::InputBuffer::GetNext()
     char c = buffer.front();
     buffer.pop_front();
 
-    if (c == '\n')
-    {
-        lineNum++;
-        charNum = -1;
-    }
-    else
-    {
-        charNum++;
-    }
+    debugInfo.Advance(c);
 
     return c;
 }

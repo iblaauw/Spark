@@ -11,12 +11,15 @@ namespace Spark
     private:
         SearchBuffer buffer;
         bool failure;
+        FailInfo failInfo;
     public:
         RuleQuery(InputBuffer& input);
 
         inline bool Failed() { return failure; }
 
         void Search(RuleToken token);
+
+        FailInfo& GetFailInfo() { return failInfo; }
     private:
         RuleQuery(SearchBuffer& current);
 
@@ -26,6 +29,5 @@ namespace Spark
         void HandleCharset(CharsetPredicate charset);
 
         void HandleOptions(InfoGatherer& info);
-
     };
 }

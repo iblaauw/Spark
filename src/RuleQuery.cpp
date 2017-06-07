@@ -42,6 +42,7 @@ namespace Spark
         if (buffer.IsDone())
         {
             failure = true;
+            failInfo.debugInfo = buffer.GetDebug();
             return;
         }
 
@@ -49,6 +50,7 @@ namespace Spark
         if (c != current)
         {
             failure = true;
+            failInfo.debugInfo = buffer.GetDebug();
             return;
         }
 
@@ -91,6 +93,7 @@ namespace Spark
         if (buffer.IsDone())
         {
             failure = true;
+            failInfo.debugInfo = buffer.GetDebug();
             return;
         }
 
@@ -98,6 +101,7 @@ namespace Spark
         if (!charset(current))
         {
             failure = true;
+            failInfo.debugInfo = buffer.GetDebug();
             return;
         }
 
@@ -119,11 +123,15 @@ namespace Spark
             if (!query.Failed()) // It succeeded! End the search
             {
                 buffer.AdvanceTo(query.buffer); // Advance our buffer to same position as sub query
+                failInfo.Clear();
                 return;
             }
+
+            failInfo.AdvanceForwardTo(std::move(query.GetFailInfo()));
         }
 
         // Every option failed
         failure = true;
+        failInfo.trace.push_back(info.GetName());
     }
 }

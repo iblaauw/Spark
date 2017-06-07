@@ -11,10 +11,12 @@ namespace Spark
     {
     private:
         InputBuffer& input;
+        FailInfo failInfo;
     public:
         RuleTraverser(InputBuffer& input);
 
         NodePtr Execute(RuleToken token);
+        const FailInfo& GetFailInfo() const { return failInfo; }
 
     private:
         NodePtr ExecuteFunc(RuleFuncWrapper func);

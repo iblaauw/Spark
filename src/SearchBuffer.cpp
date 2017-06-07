@@ -1,6 +1,6 @@
 #include "SearchBuffer.h"
 
-Spark::SearchBuffer::SearchBuffer(InputBuffer& buffer) : buffer(buffer), index(0)
+Spark::SearchBuffer::SearchBuffer(InputBuffer& buffer) : buffer(buffer), index(0), debugInfo(buffer.GetDebug())
 {}
 
 void Spark::SearchBuffer::Advance()
@@ -14,6 +14,9 @@ void Spark::SearchBuffer::Advance()
     {
         buffer.LoadNextBlock();
     }
+
+    if (!IsDone())
+        debugInfo.Advance(Current());
 }
 
 bool Spark::SearchBuffer::IsDone() const
@@ -29,6 +32,8 @@ char Spark::SearchBuffer::Current() const
 void Spark::SearchBuffer::AdvanceTo(const SearchBuffer& other)
 {
     index = other.index;
+
+    debugInfo = other.debugInfo;
 }
 
 

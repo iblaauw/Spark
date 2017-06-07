@@ -12,7 +12,7 @@
 RULE(Statement)
 {
     Autoname(builder);
-    builder.Add(ReturnStatement);
+    builder.Add(ReturnStatement, OptionalWhitespace, ';');
     builder.Add(IfStatement);
     builder.Add(WhileStatement);
     builder.Add(ForStatement);

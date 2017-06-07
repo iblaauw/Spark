@@ -71,7 +71,7 @@ namespace Spark
     {
         int index = FindValidOption(gatherer);
         if (index == -1)
-            throw ParseException("Failed to match rule " + gatherer.GetName());
+            throw ParseException(failInfo.GetErrorMessage());
 
         return DoExecuteNodes(gatherer, index);
     }
@@ -105,10 +105,13 @@ namespace Spark
                 query.Search(tok);
             }
 
-            if (!query.Failed())
+            if (!query.Failed()) // Specifically do NOT clear the failInfo here
                 return i;
+
+            failInfo.AdvanceForwardTo(std::move(query.GetFailInfo()));
         }
 
+        failInfo.trace.push_back(gatherer.GetName());
         return -1;
     }
 

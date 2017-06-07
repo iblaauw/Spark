@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "message_exception.h"
+#include "DebugInfo.h"
 
 namespace Spark
 {
@@ -16,20 +17,22 @@ namespace Spark
         std::istream& input;
         std::deque<char> buffer;
         bool lastBlock;
-        int lineNum = 0;
-        int charNum = 0;
+
+        DebugInfo debugInfo;
     public:
         InputBuffer(std::istream& input);
 
         int size() const;
         bool IsDone() const;
 
-        inline int LineNum() { return lineNum; }
-        inline int CharNum() { return charNum; }
+        inline int LineNum() { return debugInfo.lineNum; }
+        inline int CharNum() { return debugInfo.charNum; }
 
         char GetNext();
         char PeekAt(int index) const;
         void LoadNextBlock();
+
+        const DebugInfo& GetDebug() const { return debugInfo; }
     };
 
     DECL_EXCEPTION(InputBufferException);

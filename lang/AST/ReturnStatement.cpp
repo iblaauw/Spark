@@ -8,13 +8,11 @@
 RULE(ReturnStatement)
 {
     Autoname(builder);
-    builder.Add("return", Whitespace, ExpressionTree, OptionalWhitespace, ';');
-    builder.Add("return", OptionalWhitespace, ';');
+    builder.Add("return", Whitespace, ExpressionTree);
+    builder.Add("return");
 
     builder.Ignore(0);
     builder.Ignore(1);
-    builder.Ignore(3);
-    builder.Ignore(4);
 
     builder.SetNodeType<ReturnStatementNode>();
 }

@@ -21,6 +21,8 @@ Spark::NodePtr Spark::GrammarEngine::Start(RuleFuncWrapper func)
     if (!buffer.IsDone())
     {
         std::stringstream ss;
+        ss << traverser.GetFailInfo().GetErrorMessage();
+        ss << std::endl;
         ss << "At line " << buffer.LineNum() << ", character " << buffer.CharNum();
         ss << std::endl;
         ss << "Parsing finished with extra data left in the file.";
