@@ -15,13 +15,13 @@ Spark::NodePtr Spark::GrammarEngine::Start(RuleFuncWrapper func)
     RuleToken token;
     token.Set(func);
 
-    RuleTraverser traverser(buffer);
+    RuleTraverser traverser(buffer, debugContext);
     NodePtr tree = traverser.Execute(token);
 
     if (!buffer.IsDone())
     {
         std::stringstream ss;
-        ss << traverser.GetFailInfo().GetErrorMessage();
+        ss << debugContext.GetErrorMessage();
         ss << std::endl;
         ss << "At line " << buffer.LineNum() << ", character " << buffer.CharNum();
         ss << std::endl;

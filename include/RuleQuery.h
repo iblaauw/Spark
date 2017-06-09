@@ -11,17 +11,15 @@ namespace Spark
     private:
         SearchBuffer buffer;
         bool failure;
-        FailInfo failInfo;
+        DebugContext& debugContext;
     public:
-        RuleQuery(InputBuffer& input);
+        RuleQuery(InputBuffer& input, DebugContext& debugContext);
 
         inline bool Failed() { return failure; }
 
         void Search(RuleToken token);
-
-        FailInfo& GetFailInfo() { return failInfo; }
     private:
-        RuleQuery(SearchBuffer& current);
+        RuleQuery(SearchBuffer& current, DebugContext& debugContext);
 
         void HandleChar(char c);
         void HandleString(std::string str);

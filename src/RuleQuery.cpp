@@ -2,16 +2,17 @@
 
 #include "InfoGatherer.h"
 #include "Exceptions.h"
+#include "ScopeGuard.h"
 
 namespace Spark
 {
-    RuleQuery::RuleQuery(InputBuffer& input) : buffer(input), failure(false)
-    {
-    }
+    RuleQuery::RuleQuery(InputBuffer& input, DebugContext& debugContext)
+        : buffer(input), failure(false), debugContext(debugContext)
+    {}
 
-    RuleQuery::RuleQuery(SearchBuffer& current) : buffer(current), failure(false)
-    {
-    }
+    RuleQuery::RuleQuery(SearchBuffer& current, DebugContext& debugContext)
+        : buffer(current), failure(false), debugContext(debugContext)
+    {}
 
     void RuleQuery::Search(RuleToken token)
     {
@@ -42,7 +43,6 @@ namespace Spark
         if (buffer.IsDone())
         {
             failure = true;
-            failInfo.debugInfo = buffer.GetDebug();
             return;
         }
 
@@ -50,7 +50,6 @@ namespace Spark
         if (c != current)
         {
             failure = true;
-            failInfo.debugInfo = buffer.GetDebug();
             return;
         }
 
@@ -75,6 +74,14 @@ namespace Spark
         func(info);
         info.Verify();
 
+        debugContext.AddTrace(info.GetName());
+        debugContext.SetPosition(buffer.GetDebug());
+
+        ScopeGuard _guard([this]()
+        {
+            debugContext.PopTrace();
+        });
+
         if (info.NumOptions() > 1)
         {
             HandleOptions(info);
@@ -93,7 +100,6 @@ namespace Spark
         if (buffer.IsDone())
         {
             failure = true;
-            failInfo.debugInfo = buffer.GetDebug();
             return;
         }
 
@@ -101,7 +107,6 @@ namespace Spark
         if (!charset(current))
         {
             failure = true;
-            failInfo.debugInfo = buffer.GetDebug();
             return;
         }
 
@@ -114,7 +119,7 @@ namespace Spark
         //  then this branch of the search succeeds
         for (int i = 0; i < info.NumOptions(); i++)
         {
-            RuleQuery query(buffer);
+            RuleQuery query(buffer, debugContext);
             for (RuleToken tok : info.Get(i))
             {
                 query.Search(tok);
@@ -123,15 +128,11 @@ namespace Spark
             if (!query.Failed()) // It succeeded! End the search
             {
                 buffer.AdvanceTo(query.buffer); // Advance our buffer to same position as sub query
-                failInfo.Clear();
                 return;
             }
-
-            failInfo.AdvanceForwardTo(std::move(query.GetFailInfo()));
         }
 
         // Every option failed
         failure = true;
-        failInfo.trace.push_back(info.GetName());
     }
 }

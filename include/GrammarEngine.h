@@ -12,6 +12,7 @@ namespace Spark
     {
     private:
         InputBuffer buffer;
+        DebugContext debugContext;
     public:
         GrammarEngine(std::istream& input);
         NodePtr Start(RuleFuncWrapper func);

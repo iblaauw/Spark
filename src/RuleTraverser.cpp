@@ -4,10 +4,12 @@
 
 #include "RuleQuery.h"
 #include "Exceptions.h"
+#include "ScopeGuard.h"
 
 namespace Spark
 {
-    RuleTraverser::RuleTraverser(InputBuffer& input) : input(input)
+    RuleTraverser::RuleTraverser(InputBuffer& input, DebugContext& debugContext)
+        : input(input), debugContext(debugContext)
     {}
 
     NodePtr RuleTraverser::Execute(RuleToken token)
@@ -40,6 +42,14 @@ namespace Spark
         func(gatherer);
         gatherer.Verify();
 
+        debugContext.AddTrace(gatherer.GetName());
+        debugContext.SetPosition(input.GetDebug());
+
+        ScopeGuard _guard([this]()
+        {
+            debugContext.PopTrace();
+        });
+
         if (gatherer.NumOptions() > 1)
         {
             return HandleOptions(gatherer);
@@ -71,7 +81,7 @@ namespace Spark
     {
         int index = FindValidOption(gatherer);
         if (index == -1)
-            throw ParseException(failInfo.GetErrorMessage());
+            throw ParseException(debugContext.GetErrorMessage());
 
         return DoExecuteNodes(gatherer, index);
     }
@@ -84,6 +94,8 @@ namespace Spark
         char next = input.GetNext();
         if (!charset(next))
         {
+            debugContext.SetPosition(input.GetDebug());
+
             std::stringstream ss;
             ss << "At line " << input.LineNum() << ", character " << input.CharNum() << ":";
             ss << std::endl;
@@ -99,7 +111,7 @@ namespace Spark
     {
         for (int i = 0; i < gatherer.NumOptions(); i++)
         {
-            RuleQuery query(input);
+            RuleQuery query(input, debugContext);
             for (RuleToken tok : gatherer.Get(i))
             {
                 query.Search(tok);
@@ -107,11 +119,8 @@ namespace Spark
 
             if (!query.Failed()) // Specifically do NOT clear the failInfo here
                 return i;
-
-            failInfo.AdvanceForwardTo(std::move(query.GetFailInfo()));
         }
 
-        failInfo.trace.push_back(gatherer.GetName());
         return -1;
     }
 
@@ -123,6 +132,8 @@ namespace Spark
         char next = input.GetNext();
         if (next != c)
         {
+            debugContext.SetPosition(input.GetDebug());
+
             std::stringstream ss;
             ss << "At line " << input.LineNum() << ", character " << input.CharNum() << ":";
             ss << std::endl;

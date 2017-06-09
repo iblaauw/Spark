@@ -62,4 +62,21 @@ namespace Spark
         void Clear();
     };
 
+    class DebugContext
+    {
+    private:
+        DebugInfo maxInfo;
+        std::vector<std::string> trace;
+        std::vector<std::string> maxTrace;
+        bool tracking;
+
+    public:
+        DebugContext() : tracking(false) {}
+        void SetPosition(DebugInfo info);
+        void AddTrace(std::string trace);
+        void PopTrace();
+
+        std::string GetErrorMessage() const;
+    };
+
 }
