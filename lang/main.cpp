@@ -22,6 +22,8 @@ int main()
     std::ifstream input("input.txt");
 
     Spark::GrammarEngine engine(input);
+    engine.SetDebug(false);
+
     auto tree = engine.Start(Program);
 
     Ptr<CustomNode> root = PtrCast<CustomNode>(tree);

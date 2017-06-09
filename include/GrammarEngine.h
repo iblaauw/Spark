@@ -16,5 +16,6 @@ namespace Spark
     public:
         GrammarEngine(std::istream& input);
         NodePtr Start(RuleFuncWrapper func);
+        void SetDebug(bool val);
     };
 }

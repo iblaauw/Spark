@@ -33,6 +33,8 @@ namespace Spark
         void LoadNextBlock();
 
         const DebugInfo& GetDebug() const { return debugInfo; }
+
+        std::istream& GetRawStream() { return input; }
     };
 
     DECL_EXCEPTION(InputBufferException);

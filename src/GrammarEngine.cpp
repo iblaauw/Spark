@@ -21,10 +21,10 @@ Spark::NodePtr Spark::GrammarEngine::Start(RuleFuncWrapper func)
     if (!buffer.IsDone())
     {
         std::stringstream ss;
-        ss << debugContext.GetErrorMessage();
+        ss << debugContext.GetErrorMessage(buffer.GetRawStream());
         ss << std::endl;
-        ss << "At line " << buffer.LineNum() << ", character " << buffer.CharNum();
-        ss << std::endl;
+        //ss << "At line " << buffer.LineNum() << ", character " << buffer.CharNum();
+        //ss << std::endl;
         ss << "Parsing finished with extra data left in the file.";
         throw ParseException(ss.str());
     }
@@ -33,5 +33,10 @@ Spark::NodePtr Spark::GrammarEngine::Start(RuleFuncWrapper func)
         std::cout << "Success!" << std::endl;
         return tree;
     }
+}
+
+void Spark::GrammarEngine::SetDebug(bool val)
+{
+    debugContext.debugEnabled = val;
 }
 

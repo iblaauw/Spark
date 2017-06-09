@@ -60,12 +60,18 @@ namespace Spark
         bool tracking;
 
     public:
-        DebugContext() : tracking(false) {}
+        bool debugEnabled;
+
+        DebugContext() : tracking(false), debugEnabled(true) {}
         void SetPosition(DebugInfo info);
         void AddTrace(std::string trace);
         void PopTrace();
 
         std::string GetErrorMessage() const;
+        std::string GetErrorMessage(std::istream& input) const;
+    private:
+        std::string DoGetMessage() const;
+        std::string DoGetStack() const;
     };
 
 }

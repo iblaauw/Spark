@@ -81,7 +81,7 @@ namespace Spark
     {
         int index = FindValidOption(gatherer);
         if (index == -1)
-            throw ParseException(debugContext.GetErrorMessage());
+            throw ParseException(debugContext.GetErrorMessage(input.GetRawStream()));
 
         return DoExecuteNodes(gatherer, index);
     }
