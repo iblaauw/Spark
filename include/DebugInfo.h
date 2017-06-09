@@ -51,17 +51,6 @@ namespace Spark
 
     };
 
-    class FailInfo
-    {
-    public:
-        DebugInfo debugInfo;
-        std::vector<std::string> trace;
-
-        std::string GetErrorMessage() const;
-        void AdvanceForwardTo(FailInfo&& other);
-        void Clear();
-    };
-
     class DebugContext
     {
     private:

@@ -4,6 +4,7 @@
 #include "RuleToken.h"
 #include "InfoGatherer.h"
 #include "Node.h"
+#include "SearchStack.h"
 
 namespace Spark
 {
@@ -12,6 +13,7 @@ namespace Spark
     private:
         InputBuffer& input;
         DebugContext& debugContext;
+        SearchStack replayStack;
     public:
         RuleTraverser(InputBuffer& input, DebugContext& debugContext);
 

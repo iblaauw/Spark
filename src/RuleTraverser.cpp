@@ -109,6 +109,17 @@ namespace Spark
 
     int RuleTraverser::FindValidOption(InfoGatherer& gatherer)
     {
+        if (!replayStack.empty())
+        {
+            int index = replayStack.Pop();
+            if (index < gatherer.NumOptions())
+                return index;
+
+
+            std::cerr << "Warning: replay optimization is invalid, recovering but may be slower" << std::endl;
+            replayStack.Clear();
+        }
+
         for (int i = 0; i < gatherer.NumOptions(); i++)
         {
             RuleQuery query(input, debugContext);
@@ -117,8 +128,11 @@ namespace Spark
                 query.Search(tok);
             }
 
-            if (!query.Failed()) // Specifically do NOT clear the failInfo here
+            if (!query.Failed())
+            {
+                replayStack.Merge(query.ReplayStack());
                 return i;
+            }
         }
 
         return -1;

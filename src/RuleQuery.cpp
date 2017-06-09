@@ -128,6 +128,10 @@ namespace Spark
             if (!query.Failed()) // It succeeded! End the search
             {
                 buffer.AdvanceTo(query.buffer); // Advance our buffer to same position as sub query
+
+                // Update replay stack
+                replayStack.Push(i);
+                replayStack.Merge(query.replayStack);
                 return;
             }
         }
