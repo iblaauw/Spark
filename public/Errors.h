@@ -2,6 +2,9 @@
 
 #include <iostream>
 #include <exception>
+#include <sstream>
+
+#include "DebugInfo.h"
 
 /// Helpers
 
@@ -30,11 +33,12 @@ inline void _DoPrint(std::ostream& os, Type1 val, Types... rest)
     _PrintHelper<Type1, Types...>::Print(os, val, rest...);
 }
 
-
-
 bool HasError();
 
 void SetError();
+
+void SetCurrentFile(std::istream& input);
+std::istream& GetCurrentFile();
 
 class AssertionException : public std::exception
 {};
@@ -58,6 +62,17 @@ void Error(Type1 t1, Types... types)
     std::cerr << "Error: ";
     _DoPrint(std::cerr, t1, types...);
     std::cerr << std::endl;
+    SetError();
+}
+
+template <class Type1, class... Types>
+void ErrorWithPosition(Spark::DebugInfo info, Type1 t1, Types... types)
+{
+    std::stringstream ss;
+    _DoPrint(ss, t1, types...);
+
+    std::string message = info.GetErrorMessage(ss.str(), GetCurrentFile());
+    std::cerr << message << std::endl;
     SetError();
 }
 

@@ -3,6 +3,8 @@
 #include <vector>
 #include <memory>
 
+#include "DebugInfo.h"
+
 namespace Spark
 {
     class Node;
@@ -13,10 +15,11 @@ namespace Spark
     protected:
         std::vector<NodePtr> children;
         std::string name;
+        DebugInfo debugInfo;
     public:
         Node() : children(), name("<anon>") {}
         Node(std::initializer_list<NodePtr> init) : children(init), name("<anon>") {}
-        Node(const std::vector<NodePtr>& init, std::string name) : children(init), name(name) {}
+        Node(const std::vector<NodePtr>& init, std::string name, DebugInfo info) : children(init), name(name), debugInfo(info) {}
         Node(const std::vector<NodePtr>& init) : children(init), name("<anon>") {}
 
         inline NodePtr& operator[](int index) { return children.at(index); }
@@ -34,6 +37,9 @@ namespace Spark
         void SetName(std::string newname) { name = newname; }
 
         const std::vector<NodePtr>& GetChildren() const { return children; }
+
+        inline void SetDebugInfo(const DebugInfo& info) { debugInfo = info; }
+        inline const DebugInfo& GetDebugInfo() const { return debugInfo; }
     };
 
     class CharNode : public Node

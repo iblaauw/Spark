@@ -20,6 +20,7 @@ public:
 int main()
 {
     std::ifstream input("input.txt");
+    SetCurrentFile(input);
 
     Spark::GrammarEngine engine(input);
     engine.SetDebug(false);
@@ -28,6 +29,8 @@ int main()
 
     Ptr<CustomNode> root = PtrCast<CustomNode>(tree);
 
+
+    input.clear(); // Needed to clear the EOF state so that the file can be read again
     //PrintTree(tree);
 
     std::cout << std::endl << "Processing..." << std::endl << std::endl;

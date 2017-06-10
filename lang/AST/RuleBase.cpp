@@ -61,6 +61,11 @@ void CustomNode::Map(std::function<void(Ptr<CustomNode>)> func)
     }
 }
 
+void CustomNode::PositionError(std::string message)
+{
+
+}
+
 void StringValueNode::Process()
 {
     value = "<error>";

@@ -53,6 +53,8 @@ protected:
 
     void Map(std::function<void(Ptr<CustomNode>)> func);
 
+    void PositionError(std::string message);
+
     template <class T>
     Ptr<T> SafeGet(int index) const
     {
@@ -70,6 +72,12 @@ protected:
         Assert(child->GetType() == type, "Invalid Node Structure");
 
         return PtrCast<T>(child);
+    }
+
+    template <class Type1, class... Types>
+    void Error(Type1 t1, Types... types)
+    {
+        ::ErrorWithPosition(this->debugInfo, t1, types...);
     }
 };
 

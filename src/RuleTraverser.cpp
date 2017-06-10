@@ -162,10 +162,12 @@ namespace Spark
     NodePtr RuleTraverser::DoExecuteNodes(InfoGatherer& gatherer, int index)
     {
         // TODO: dispose gatherer here to free up memory
-        // TODO: make a replayer to speed this up (currently will traverse bottom an exponential # times)
 
         int count = 0;
         const std::set<int>& ignores = gatherer.IgnoreValues();
+
+        // Snag position before consuming children
+        DebugInfo currentPosition = input.GetDebug();
 
         std::vector<NodePtr> nodes;
         for (RuleToken tok : gatherer.Get(index))
@@ -203,10 +205,11 @@ namespace Spark
         {
             NodePtr node = gatherer.Factory(nodes);
             node->SetName(name);
+            node->SetDebugInfo(currentPosition);
             return node;
         }
 
-        return std::make_shared<Node>(nodes, name);
+        return std::make_shared<Node>(nodes, name, currentPosition);
     }
 
     // Util func
