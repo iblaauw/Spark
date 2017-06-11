@@ -40,7 +40,7 @@ public:
 
 static LangType* IntOnly(LangType* a, LangType* b, CompileContext& context)
 {
-    LangType* intType = context.symbolTable->types.Get("int");
+    LangType* intType = context.builtins->types.Get("int");
     if (a != intType || b != intType)
         return nullptr;
     return intType;
@@ -48,8 +48,8 @@ static LangType* IntOnly(LangType* a, LangType* b, CompileContext& context)
 
 static LangType* IntOrBoolCompare(LangType* a, LangType* b, CompileContext& context)
 {
-    LangType* intType = context.symbolTable->types.Get("int");
-    LangType* boolType = context.symbolTable->types.Get("bool");
+    LangType* intType = context.builtins->types.Get("int");
+    LangType* boolType = context.builtins->types.Get("bool");
     if (a == intType && b == intType)
         return boolType;
 
@@ -61,8 +61,8 @@ static LangType* IntOrBoolCompare(LangType* a, LangType* b, CompileContext& cont
 
 static LangType* IntCompare(LangType* a, LangType* b, CompileContext& context)
 {
-    LangType* intType = context.symbolTable->types.Get("int");
-    LangType* boolType = context.symbolTable->types.Get("bool");
+    LangType* intType = context.builtins->types.Get("int");
+    LangType* boolType = context.builtins->types.Get("bool");
     if (a == intType && b == intType)
         return boolType;
 

@@ -28,7 +28,7 @@ void NumberLiteralNode::Process()
 
 UnknownPtr<RValue> NumberLiteralNode::Evaluate(CompileContext& context)
 {
-    LangType* intType = context.symbolTable->types.Get("int");
+    LangType* intType = context.builtins->types.Get("int");
     llvm::Value* val = Spark::TypeConverter::Create<int>(this->value);
     auto result = std::make_shared<GeneralRValue>(val, intType);
     return PtrCast<RValue>(result);

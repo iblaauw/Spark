@@ -149,7 +149,7 @@ void FunctionNode::Generate(CompileContext& context)
 
     if (finalBB->getTerminator() == nullptr)
     {
-        LangType* voidtype = context.symbolTable->types.Get("void");
+        LangType* voidtype = context.builtins->types.Get("void");
         if (funcDefinition->ReturnType() == voidtype)
         {
             // Implicit "return;", insert it automatically

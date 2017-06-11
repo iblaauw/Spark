@@ -12,10 +12,11 @@ class CompileContext
 {
 public:
     SymbolTable* symbolTable;
+    SymbolTable* builtins;
     llvm::IRBuilder<> builder;
     Function* currentFunction;
 
-    CompileContext() : symbolTable(nullptr), builder(Spark::LLVMManager::Context()), currentFunction(nullptr) {}
+    CompileContext() : symbolTable(nullptr), builtins(nullptr), builder(Spark::LLVMManager::Context()), currentFunction(nullptr) {}
 };
 
 

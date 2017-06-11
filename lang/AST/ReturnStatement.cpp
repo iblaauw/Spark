@@ -34,7 +34,7 @@ void ReturnStatementNode::Generate(CompileContext& context)
 
     Assert(size <= 1, "return statement with multiple expressions");
 
-    LangType* voidType = context.symbolTable->types.Get("void");
+    LangType* voidType = context.builtins->types.Get("void");
 
     if (retType == voidType)
     {

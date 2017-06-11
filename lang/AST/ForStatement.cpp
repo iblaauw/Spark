@@ -75,7 +75,7 @@ void ForStatementNode::Generate(CompileContext& context)
         return;
 
     LangType* condType = condition->GetType();
-    LangType* boolType = context.symbolTable->types.Get("bool");
+    LangType* boolType = context.builtins->types.Get("bool");
     if (!boolType->IsAssignableFrom(condType))
     {
         Error("Cannot convert from type '", condType->GetName(), "' to 'bool'. Expected a bool value for condition of for statement.");

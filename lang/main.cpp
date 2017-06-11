@@ -23,7 +23,6 @@ int main()
     SetCurrentFile(input);
 
     Spark::GrammarEngine engine(input);
-    engine.SetDebug(false);
 
     auto tree = engine.Start(Program);
 
@@ -41,12 +40,15 @@ int main()
 
     Spark::LLVMManager::Init("my_module", 0); // NOTE: no optimizations enabled because of debugging
 
-    SymbolTable globalSymbols;
-    AddBuiltinTypes(globalSymbols);
-    AddBuiltinFunctions(globalSymbols);
+    SymbolTable builtinTable;
+    SymbolTable globalSymbols(&builtinTable);
+
+    AddBuiltinTypes(builtinTable);
+    AddBuiltinFunctions(builtinTable);
 
     CompileContext globalContext;
     globalContext.symbolTable = &globalSymbols;
+    globalContext.builtins = &builtinTable;
 
     if (HasError())
         return 1;

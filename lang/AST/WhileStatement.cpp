@@ -45,7 +45,7 @@ void WhileStatementNode::Generate(CompileContext& context)
         return;
 
     LangType* ctype = condition->GetType();
-    LangType* boolType = context.symbolTable->types.Get("bool");
+    LangType* boolType = context.builtins->types.Get("bool");
 
     if (!boolType->IsAssignableFrom(ctype))
     {
