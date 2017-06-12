@@ -5,6 +5,7 @@
 #include "AST/FuncCall.h"
 #include "AST/VariableExpression.h"
 #include "AST/Operator.h"
+#include "AST/ParensExpression.h"
 
 
 RULE(Expression)
@@ -12,6 +13,7 @@ RULE(Expression)
     Autoname(builder);
     builder.Add(NumberLiteral);
     builder.Add(StringLiteral);
+    builder.Add(ParensExpression);
     builder.Add(FuncCall);
     builder.Add(VariableExpression);
 
