@@ -39,6 +39,29 @@ UnknownPtr<RValue> ExpressionNode::Evaluate(CompileContext& context)
     return child->Evaluate(context);
 }
 
+void ExpressionTreeNode::Process()
+{
+    CustomNode::Process();
+
+    if (customChildren.size() != 3)
+        return;
+
+    auto op = SafeGet<OperatorNode>(1, "OperatorNode");
+    precedence = op->GetPrecedence();
+
+    auto rhs = SafeGet<ExpressionTreeNode>(2, "ExpressionTreeNode");
+    int otherPrecedence = rhs->GetPrecedence();
+
+    if (precedence == 100 || otherPrecedence == 100)
+        return;
+
+    if (precedence > otherPrecedence
+        || (precedence == otherPrecedence && !op->IsGroupRight()))
+    {
+        DoRotate(op, rhs);
+    }
+}
+
 UnknownPtr<RValue> ExpressionTreeNode::Evaluate(CompileContext& context)
 {
 
@@ -109,4 +132,55 @@ UnknownPtr<RValue> ExpressionTreeNode::EvalUnaryPre(CompileContext& context)
 
     return op->Create(rhs, context);
 }
+
+void ExpressionTreeNode::DoRotate(Ptr<OperatorNode> op, Ptr<ExpressionTreeNode> child)
+{
+    Assert(customChildren.size() == 3, "invalid expression tree structure");
+
+    auto lhs = customChildren[0];
+    auto op2 = child->GetBinaryOperator();
+    auto rhs = child->GetRHS();
+
+    child->DoLowerRotate(lhs, op);
+
+    customChildren[0] = PtrCast<CustomNode>(child);
+    customChildren[1] = PtrCast<CustomNode>(op2);
+    customChildren[2] = rhs;
+
+    children[0] = PtrCast<Spark::Node>(customChildren[0]);
+    children[1] = PtrCast<Spark::Node>(customChildren[1]);
+    children[2] = PtrCast<Spark::Node>(customChildren[2]);
+
+    precedence = op2->GetPrecedence();
+}
+
+void ExpressionTreeNode::DoLowerRotate(Ptr<CustomNode> newLHS, Ptr<OperatorNode> op)
+{
+    Assert(customChildren.size() == 3, "invalid expression tree structure");
+
+    auto rhs = customChildren[0];
+
+    customChildren[0] = newLHS;
+    customChildren[1] = PtrCast<CustomNode>(op);
+    customChildren[2] = rhs;
+
+    children[0] = PtrCast<Spark::Node>(customChildren[0]);
+    children[1] = PtrCast<Spark::Node>(customChildren[1]);
+    children[2] = PtrCast<Spark::Node>(customChildren[2]);
+
+    precedence = op->GetPrecedence();
+}
+
+Ptr<OperatorNode> ExpressionTreeNode::GetBinaryOperator()
+{
+    Assert(customChildren.size() == 3, "Invalid expression tree structure");
+    return SafeGet<OperatorNode>(1, "OperatorNode");
+}
+
+Ptr<CustomNode> ExpressionTreeNode::GetRHS()
+{
+    Assert(customChildren.size() == 3, "Invalid expression tree structure");
+    return customChildren[2];
+}
+
 

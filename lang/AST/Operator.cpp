@@ -202,6 +202,59 @@ llvm::Value* OperatorNode::Create(llvm::Value* lhs, llvm::Value* rhs, CompileCon
     return impl->value(lhs, rhs, context);
 }
 
+static std::map<std::string, int> _binary_precedence
+{
+    { "==", 20 },
+    { "!=", 20 },
+    { ">=", 20 },
+    { "<=", 20 },
+    { "+" , 40 },
+    { "-" , 40 },
+    { "*" , 60 },
+    { "/" , 60 },
+    { "<" , 20 },
+    { ">" , 20 },
+    { "%" , 30 }
+};
+
+static std::map<std::string, bool> _binary_group_right
+{
+    { "==", false },
+    { "!=", false },
+    { ">=", false },
+    { "<=", false },
+    { "+" , false },
+    { "-" , false },
+    { "*" , false },
+    { "/" , false },
+    { "<" , false },
+    { ">" , false },
+    { "%" , false }
+};
+
+int OperatorNode::GetPrecedence() const
+{
+    auto op = GetValue();
+    auto it = _binary_precedence.find(op);
+    if (it != _binary_precedence.end())
+        return it->second;
+
+    Assert(false, "unknown operator '", op, "'");
+    return 100;
+}
+
+bool OperatorNode::IsGroupRight() const
+{
+    auto op = GetValue();
+    auto it = _binary_group_right.find(op);
+    if (it != _binary_group_right.end())
+        return it->second;
+
+    Assert(false, "unknown operator '", op, "'");
+    return false;
+}
+
+
 //****  UNARY PRE  ****//
 
 class UnaryOperatorImpl

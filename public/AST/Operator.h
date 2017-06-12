@@ -18,6 +18,9 @@ public:
 
     LangType* GetResultType(LangType* lhs, LangType* rhs, CompileContext& context); // return nullptr if incompatible
     llvm::Value* Create(llvm::Value* lhs, llvm::Value* rhs, CompileContext& context);
+
+    int GetPrecedence() const;
+    bool IsGroupRight() const;
 };
 
 class UnaryOperatorImpl;

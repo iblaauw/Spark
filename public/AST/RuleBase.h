@@ -91,7 +91,7 @@ public:
 
     virtual void Process() override;
 
-    std::string GetValue() { return value; }
+    std::string GetValue() const { return value; }
 };
 
 class ChainingNode : public CustomNode
