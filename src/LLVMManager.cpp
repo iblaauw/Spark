@@ -78,6 +78,15 @@ namespace Spark
         return gvar;
     }
 
+    llvm::Value* LLVMManager::CreateStructValue(llvm::IRBuilder<>& builder, llvm::Type* structType, const std::vector<llvm::Value*>& values, std::string name)
+    {
+        llvm::Value* result = llvm::UndefValue::get(structType);
+        for (unsigned int i = 0; i < values.size(); i++)
+        {
+            result = builder.CreateInsertValue(result, values[i], { i }, name);
+        }
+        return result;
+    }
 
     void LLVMManager::OptimizeFunction(llvm::Function* func)
     {

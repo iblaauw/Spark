@@ -58,6 +58,8 @@ namespace Spark
 
         llvm::GlobalVariable* CreateGlobalConstant(std::string name, llvm::Constant* value, llvm::GlobalValue::LinkageTypes linkage = llvm::GlobalValue::PrivateLinkage);
 
+        llvm::Value* CreateStructValue(llvm::IRBuilder<>& builder, llvm::Type* structType, const std::vector<llvm::Value*>& values, std::string name);
+
         void OptimizeFunction(llvm::Function* func);
 
         void CompileBC(std::string outfile);

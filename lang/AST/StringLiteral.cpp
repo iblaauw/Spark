@@ -41,18 +41,21 @@ void StringLiteralNode::Process()
 UnknownPtr<RValue> StringLiteralNode::Evaluate(CompileContext& context)
 {
     std::string value = Parse(literal);
+    int size = value.size();
     llvm::Constant* val = llvm::ConstantDataArray::getString(
         Spark::LLVMManager::Context(),
         value);
 
     auto* gvar = Spark::LLVMManager::Instance().CreateGlobalConstant(".str", val);
 
+    LangType* type = context.builtins->types.Get("string");
+
     auto zero = Spark::TypeConverter::Create<int>(0);
     std::vector<llvm::Value*> indices { zero, zero };
-
-    LangType* type = context.builtins->types.Get("string");
-    llvm::Value* instruction = context.builder.CreateGEP(gvar, indices, "str_literal");
-    auto ptrVal = std::make_shared<GeneralRValue>(instruction, type);
+    llvm::Value* str_ptr = context.builder.CreateGEP(gvar, indices, "str_ptr");
+    llvm::Value* size_val = Spark::TypeConverter::Create<int>(size);
+    llvm::Value* final_val = Spark::LLVMManager::Instance().CreateStructValue(context.builder, type->GetIR(), { size_val, str_ptr }, "str_literal");
+    auto ptrVal = std::make_shared<GeneralRValue>(final_val, type);
     return PtrCast<RValue>(ptrVal);
 }
 
