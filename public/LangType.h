@@ -17,11 +17,13 @@ public:
     virtual llvm::Type* GetIR() const = 0;
 
     virtual bool IsPointer() const { return false; }
+    virtual bool IsArray() const { return false; }
 
     virtual bool IsAssignableFrom(LangType* otherType) const = 0;
     virtual void InsertConversion(LangType* fromType, CompileContext& context) const = 0;
 
     LangType* GetPointerTo() { return cache.GetPointer(); }
+    LangType* GetArrayOf(int size) { return cache.GetArray(size); }
 
     // TODO: add inheritance and const-ness
     // TODO: add a map of members
@@ -63,4 +65,27 @@ public:
 
     friend class SpecialTypeCache;
 };
+
+class ArrayType : public LangType
+{
+private:
+    LangType* subType;
+    int size;
+
+    ArrayType(LangType* subType, int size);
+public:
+    std::string GetName() const override { return subType->GetName() + "[" + std::to_string(size) + "]"; }
+    llvm::Type* GetIR() const override;
+
+    bool IsArray() const override { return true; }
+
+    bool IsAssignableFrom(LangType* otherType) const override;
+    void InsertConversion(LangType* fromType, CompileContext& context) const override;
+
+    LangType* GetElementType() const { return subType; }
+    int GetSize() const { return size; }
+
+    friend class SpecialTypeCache;
+};
+
 

@@ -38,4 +38,30 @@ void PointerType::InsertConversion(LangType* fromType, CompileContext& context) 
     // NOOP
 }
 
+ArrayType::ArrayType(LangType* subType, int size) : subType(subType), size(size) {}
+
+llvm::Type* ArrayType::GetIR() const
+{
+    llvm::Type* sub = subType->GetIR();
+    return llvm::ArrayType::get(sub, size);
+}
+
+bool ArrayType::IsAssignableFrom(LangType* otherType) const
+{
+    if (!otherType->IsArray())
+        return false;
+
+    ArrayType* other = static_cast<ArrayType*>(otherType);
+    if (other->subType != this->subType)
+        return false;
+
+    return this->size <= other->size;
+}
+
+void ArrayType::InsertConversion(LangType* fromType, CompileContext& context) const
+{
+    // NOOP
+}
+
+
 

@@ -18,3 +18,14 @@ LangType* SpecialTypeCache::GetPointer()
     return pointerType;
 }
 
+LangType* SpecialTypeCache::GetArray(int size)
+{
+    auto it = arrayMap.find(size);
+    if (it != arrayMap.end())
+        return it->second;
+
+    LangType* type = new ArrayType(owner, size);
+    arrayMap[size] = type;
+    return type;
+}
+

@@ -1,14 +1,15 @@
 #include "AST/Type.h"
 
 #include "AST/Common.h"
+#include "AST/NumberLiteral.h"
 
-class TypeModifierNode : public StringValueNode
+class TypeModifierNode : public CustomNode
 {
 public:
-    TypeModifierNode(std::vector<NodePtr>& nodes) : StringValueNode(nodes) {}
+    TypeModifierNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
     std::string GetType() const override { return "TypeModifierNode"; }
 
-    LangType* Modify(LangType* original);
+    virtual LangType* Modify(LangType* original) = 0;
 };
 
 class TypeModifierSetNode : public ChainingNode
@@ -20,11 +21,62 @@ public:
     LangType* Modify(LangType* original);
 };
 
+/// Type Modifiers  ///
+
+class _PtrModifierNode : public TypeModifierNode {
+public:
+    _PtrModifierNode(std::vector<NodePtr>& nodes) : TypeModifierNode(nodes) {}
+    LangType* Modify(LangType* lt) { return lt->GetPointerTo(); }
+};
+
+static RULE(_PtrModifier)
+{
+    Autoname(builder);
+    builder.Add('*');
+    builder.SetNodeType<_PtrModifierNode>();
+}
+
+class _ArrayModifierNode : public TypeModifierNode {
+public:
+    _ArrayModifierNode(std::vector<NodePtr>& nodes) : TypeModifierNode(nodes) {}
+    LangType* Modify(LangType* lt) {
+        auto numberLiteral = SafeGet<NumberLiteralNode>(0, "NumberLiteralNode");
+        int val = numberLiteral->GetNumber();
+        return lt->GetArrayOf(val);
+    }
+};
+
+static RULE(_ArrayModifier)
+{
+    Autoname(builder);
+    builder.Add('[', OptionalWhitespace, NumberLiteral, OptionalWhitespace, ']');
+    builder.Ignore(1);
+    builder.Ignore(3);
+
+    builder.SetNodeType<_ArrayModifierNode>();
+
+}
+
+/// Type Modifier Choice ///
+
+class _TypeModifierChoiceNode : public CustomNode
+{
+public:
+    _TypeModifierChoiceNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    std::string GetType() const override { return "_TypeModifierChoiceNode"; }
+    LangType* Modify(LangType* original)
+    {
+        auto modifier = SafeGet<TypeModifierNode>(0, "TypeModifierNode");
+        return modifier->Modify(original);
+    }
+};
+
 RULE(TypeModifier)
 {
     Autoname(builder);
-    builder.Add("*");
-    builder.SetNodeType<TypeModifierNode>();
+    builder.Add(_PtrModifier);
+    builder.Add(_ArrayModifier);
+    builder.SetNodeType<_TypeModifierChoiceNode>();
 }
 
 RULE(TypeModifierSet)
@@ -43,23 +95,11 @@ RULE(Type)
     builder.SetNodeType<TypeNode>();
 }
 
-LangType* TypeModifierNode::Modify(LangType* original)
-{
-    std::string val = GetValue();
-    if (val == "*")
-    {
-        return original->GetPointerTo();
-    }
-
-    Assert(false, "Unknown type modifier '", val, "'");
-    return nullptr;
-}
-
 LangType* TypeModifierSetNode::Modify(LangType* original)
 {
     for (unsigned int i = 0; i < customChildren.size(); i++)
     {
-        auto modifier = SafeGet<TypeModifierNode>(i, "TypeModifierNode");
+        auto modifier = SafeGet<_TypeModifierChoiceNode>(i, "_TypeModifierChoiceNode");
         original = modifier->Modify(original);
     }
     return original;
