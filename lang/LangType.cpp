@@ -2,6 +2,9 @@
 
 #include "llvm/IR/DerivedTypes.h"
 
+#include "TypeConverter.h"
+#include "CompileContext.h"
+
 BasicType::BasicType(std::string name) : name(name) {}
 
 bool BasicType::IsAssignableFrom(LangType* otherType) const
@@ -38,12 +41,18 @@ void PointerType::InsertConversion(LangType* fromType, CompileContext& context) 
     // NOOP
 }
 
-ArrayType::ArrayType(LangType* subType, int size) : subType(subType), size(size) {}
+ArrayType::ArrayType(LangType* subType, int size) : subType(subType), size(size)
+{
+    llvm::Type* ptrType = subType->GetIR()->getPointerTo();
+    llvm::Type* intType = Spark::TypeConverter::Get<int>();
+
+    llvm::Type* types[2] = { intType, ptrType };
+    type = llvm::StructType::create(types, subType->GetName() + "_array_t");
+}
 
 llvm::Type* ArrayType::GetIR() const
 {
-    llvm::Type* sub = subType->GetIR();
-    return llvm::ArrayType::get(sub, size);
+    return type;
 }
 
 bool ArrayType::IsAssignableFrom(LangType* otherType) const
@@ -62,6 +71,27 @@ void ArrayType::InsertConversion(LangType* fromType, CompileContext& context) co
 {
     // NOOP
 }
+
+void ArrayType::CallConstructor(UnknownPtr<LValue> lval,
+                                std::vector<UnknownPtr<RValue>>& arguments,
+                                CompileContext& context)
+{
+    llvm::Type* arrayType = llvm::ArrayType::get(subType->GetIR(), size);
+    auto data = context.builder.CreateAlloca(arrayType);
+
+    auto zero = Spark::TypeConverter::Create<int>(0);
+    auto ptr1 = context.builder.CreateGEP(data,
+        std::vector<llvm::Value*>{ zero, zero });
+
+    auto sizeVal = Spark::TypeConverter::Create<int>(size);
+
+    llvm::Value* undefVal = llvm::UndefValue::get(this->type);
+    auto part1 = context.builder.CreateInsertValue(undefVal, sizeVal, std::vector<unsigned>{ 0 });
+    auto part2 = context.builder.CreateInsertValue(part1, ptr1, std::vector<unsigned>{ 1 });
+
+    lval->Assign(part2, context);
+}
+
 
 
 

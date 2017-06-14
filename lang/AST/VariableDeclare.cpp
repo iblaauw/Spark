@@ -36,14 +36,19 @@ void VariableDeclareNode::GatherSymbols(CompileContext& context)
 
 void VariableDeclareNode::Generate(CompileContext& context)
 {
+    LangType* ltype = variable->GetType();
+
     if (customChildren.size() <= 2)
+    {
+        std::vector<UnknownPtr<RValue>> args {};
+        ltype->CallConstructor(variable, args, context);
         return;
+    }
 
     UnknownPtr<RValue> rhs = customChildren[2]->Evaluate(context);
     if (rhs == nullptr)
         return;
 
-    LangType* ltype = variable->GetType();
     LangType* rtype = rhs->GetType();
     if (!ltype->IsAssignableFrom(rtype))
     {

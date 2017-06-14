@@ -6,6 +6,7 @@
 #include "AST/VariableExpression.h"
 #include "AST/Operator.h"
 #include "AST/ParensExpression.h"
+#include "AST/Indexing.h"
 
 
 RULE(Expression)
@@ -15,6 +16,7 @@ RULE(Expression)
     builder.Add(StringLiteral);
     builder.Add(ParensExpression);
     builder.Add(FuncCall);
+    builder.Add(IndexOf);
     builder.Add(VariableExpression);
 
     builder.SetNodeType<ExpressionNode>();

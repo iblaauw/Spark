@@ -3,8 +3,11 @@
 #include "llvm/IR/Type.h"
 #include "PtrUtils.h"
 #include "SpecialTypeCache.h"
+#include "UnknownPtr.h"
 
 class CompileContext;
+class LValue;
+class RValue;
 
 class LangType
 {
@@ -21,6 +24,10 @@ public:
 
     virtual bool IsAssignableFrom(LangType* otherType) const = 0;
     virtual void InsertConversion(LangType* fromType, CompileContext& context) const = 0;
+
+    virtual void CallConstructor(UnknownPtr<LValue> lval,
+                                std::vector<UnknownPtr<RValue>>& arguments,
+                                CompileContext& context) { }
 
     LangType* GetPointerTo() { return cache.GetPointer(); }
     LangType* GetArrayOf(int size) { return cache.GetArray(size); }
@@ -69,6 +76,7 @@ public:
 class ArrayType : public LangType
 {
 private:
+    llvm::Type* type;
     LangType* subType;
     int size;
 
@@ -82,8 +90,13 @@ public:
     bool IsAssignableFrom(LangType* otherType) const override;
     void InsertConversion(LangType* fromType, CompileContext& context) const override;
 
+    void CallConstructor(UnknownPtr<LValue> lval,
+                        std::vector<UnknownPtr<RValue>>& arguments,
+                        CompileContext& context) override;
+
     LangType* GetElementType() const { return subType; }
     int GetSize() const { return size; }
+
 
     friend class SpecialTypeCache;
 };
