@@ -46,6 +46,7 @@ void FuncCallNode::Process()
 }
 
 
+#include "llvm/Support/raw_ostream.h"
 
 UnknownPtr<RValue> FuncCallNode::Evaluate(CompileContext& context)
 {
@@ -73,6 +74,7 @@ UnknownPtr<RValue> FuncCallNode::Evaluate(CompileContext& context)
     auto converter = [&context](UnknownPtr<RValue> rv) { return rv->GetValue(context); };
     ::Map(converter, argVals, args);
 
+    llvm::errs() << *funcDef << "\n";
     llvm::Value* value = context.builder.CreateCall(funcDef, args);
 
     LangType* retType = func->ReturnType();

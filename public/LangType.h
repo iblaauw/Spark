@@ -80,7 +80,7 @@ private:
     LangType* subType;
     int size;
 
-    ArrayType(LangType* subType, int size);
+    ArrayType(llvm::Type* irType, LangType* subType, int size);
 public:
     std::string GetName() const override { return subType->GetName() + "[" + std::to_string(size) + "]"; }
     llvm::Type* GetIR() const override;
@@ -97,6 +97,8 @@ public:
     LangType* GetElementType() const { return subType; }
     int GetSize() const { return size; }
 
+private:
+    static llvm::Type* CreateMasterType(LangType* subType);
 
     friend class SpecialTypeCache;
 };

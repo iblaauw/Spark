@@ -41,14 +41,9 @@ void PointerType::InsertConversion(LangType* fromType, CompileContext& context) 
     // NOOP
 }
 
-ArrayType::ArrayType(LangType* subType, int size) : subType(subType), size(size)
-{
-    llvm::Type* ptrType = subType->GetIR()->getPointerTo();
-    llvm::Type* intType = Spark::TypeConverter::Get<int>();
-
-    llvm::Type* types[2] = { intType, ptrType };
-    type = llvm::StructType::create(types, subType->GetName() + "_array_t");
-}
+ArrayType::ArrayType(llvm::Type* irType, LangType* subType, int size)
+    : type(irType), subType(subType), size(size)
+{}
 
 llvm::Type* ArrayType::GetIR() const
 {
@@ -92,6 +87,14 @@ void ArrayType::CallConstructor(UnknownPtr<LValue> lval,
     lval->Assign(part2, context);
 }
 
+/*static*/ llvm::Type* ArrayType::CreateMasterType(LangType* subType)
+{
+    llvm::Type* ptrType = subType->GetIR()->getPointerTo();
+    llvm::Type* intType = Spark::TypeConverter::Get<int>();
+
+    llvm::Type* types[2] = { intType, ptrType };
+    return llvm::StructType::create(types, subType->GetName() + "_array_t");
+}
 
 
 

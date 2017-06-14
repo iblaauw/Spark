@@ -16,8 +16,6 @@ RULE(IndexOf)
     builder.SetNodeType<IndexOfNode>();
 }
 
-#include "llvm/Support/raw_ostream.h" // for llvm::errs()
-
 UnknownPtr<RValue> IndexOfNode::Evaluate(CompileContext& context)
 {
     Assert(customChildren.size() >= 2, "Invalid 'Index Of' Expression structure");
@@ -47,23 +45,16 @@ UnknownPtr<RValue> IndexOfNode::Evaluate(CompileContext& context)
         return nullptr;
     }
 
-    std::cerr << "BLAHBLAH" << std::endl;
-
     auto arrayIR = arrayVal->GetValue(context);
     auto indexIR = indexVal->GetValue(context);
 
-    std::cerr << "A" << std::endl;
+    std::vector<unsigned int> indices { 1 };
+    llvm::Value* ptrVal = context.builder.CreateExtractValue(arrayIR, indices, "array_ptr");
 
-    llvm::errs() << *arrayIR << "\n";
-    llvm::errs() << *indexIR << "\n";
-
-    std::vector<llvm::Value*> indices { indexIR };
-    llvm::Value* finalVal = context.builder.CreateGEP(arrayIR, indices);
-
-    std::cerr << "B" << std::endl;
+    std::vector<llvm::Value*> indices2 { indexIR };
+    llvm::Value* finalVal = context.builder.CreateGEP(ptrVal, indices2, "array_indexed");
 
     Ptr<PointerLValue> result = std::make_shared<PointerLValue>(finalVal, trueArrayType->GetElementType());
-    std::cerr << "BLAHBLAH" << std::endl;
     return PtrCast<RValue>(result);
 }
 

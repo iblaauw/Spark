@@ -24,7 +24,12 @@ LangType* SpecialTypeCache::GetArray(int size)
     if (it != arrayMap.end())
         return it->second;
 
-    LangType* type = new ArrayType(owner, size);
+    if (arrayType == nullptr)
+    {
+        arrayType = ArrayType::CreateMasterType(owner);
+    }
+
+    LangType* type = new ArrayType(arrayType, owner, size);
     arrayMap[size] = type;
     return type;
 }
