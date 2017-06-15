@@ -33,7 +33,6 @@ private:
     UnknownPtr<RValue> EvalSimple(CompileContext& context);
     UnknownPtr<RValue> EvalBinary(CompileContext& context);
     UnknownPtr<RValue> EvalUnaryPre(CompileContext& context);
-    //UnknownPtr<RValue> EvalUnaryPost(CompileContext& context);
 
     void DoRotate(Ptr<OperatorNode> op, Ptr<ExpressionTreeNode> child);
     void DoLowerRotate(Ptr<CustomNode> newLHS, Ptr<OperatorNode> op);

@@ -9,6 +9,43 @@
 #include "AST/Indexing.h"
 
 
+class ExpressionPostOpChainNode : public ChainingNode
+{
+public:
+    ExpressionPostOpChainNode(std::vector<NodePtr>& nodes) : ChainingNode(nodes) {}
+    std::string GetType() const override { return "ExpressionPostOpChainNode"; }
+
+    UnknownPtr<RValue> EvaluateUnaryPost(UnknownPtr<RValue> expr, CompileContext& context)
+    {
+        UnknownPtr<RValue> result = expr;
+        for (auto child : customChildren)
+        {
+            if (result == nullptr)
+                return nullptr;
+
+            auto op = PtrCast<UnaryPostOperatorNode>(child);
+            result = op->Create(result, context);
+        }
+        return result;
+    }
+};
+
+class ExpressionPartNode : public CustomNode
+{
+public:
+    ExpressionPartNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    std::string GetType() const override { return "ExpressionPartNode"; }
+
+    UnknownPtr<RValue> Evaluate(CompileContext& context) override
+    {
+        Assert(customChildren.size() > 1, "Invalid Node Structure");
+
+        auto lhs = customChildren[0]->Evaluate(context);
+        auto opset = SafeGet<ExpressionPostOpChainNode>(1, "ExpressionPostOpChainNode");
+        return opset->EvaluateUnaryPost(lhs, context);
+    }
+};
+
 RULE(Expression)
 {
     Autoname(builder);
@@ -22,12 +59,33 @@ RULE(Expression)
     builder.SetNodeType<ExpressionNode>();
 }
 
+RULE(ExpressionPostOpChain)
+{
+    Autoname(builder);
+    builder.Add(UnaryPostOperator, OptionalWhitespace, ExpressionPostOpChain);
+    builder.AddEmpty();
+
+    builder.Ignore(1);
+
+    builder.SetNodeType<ExpressionPostOpChainNode>();
+}
+
+RULE(ExpressionPart)
+{
+    Autoname(builder);
+    builder.Add(Expression, OptionalWhitespace, ExpressionPostOpChain);
+
+    builder.Ignore(1);
+
+    builder.SetNodeType<ExpressionPartNode>();
+}
+
 RULE(ExpressionTree)
 {
     Autoname(builder);
-    builder.Add(Expression, OptionalWhitespace, Operator, OptionalWhitespace, ExpressionTree);
+    builder.Add(ExpressionPart, OptionalWhitespace, Operator, OptionalWhitespace, ExpressionTree);
     builder.Add(UnaryPreOperator, OptionalWhitespace, ExpressionTree);
-    builder.Add(Expression);
+    builder.Add(ExpressionPart);
 
     builder.Ignore(1);
     builder.Ignore(3);

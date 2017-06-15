@@ -2,6 +2,8 @@
 
 #include <functional>
 
+#include "AST/Indexing.h"
+
 using LangTypePtr = UnknownPtr<LangType>;
 
 RULE(Operator)
@@ -29,6 +31,14 @@ RULE(UnaryPreOperator)
     builder.Add("&");
 
     builder.SetNodeType<UnaryPreOperatorNode>();
+}
+
+RULE(UnaryPostOperator)
+{
+    Autoname(builder);
+    builder.Add(IndexOf);
+
+    builder.SetNodeType<UnaryPostOperatorNode>();
 }
 
 class OperatorImpl
@@ -326,6 +336,13 @@ UnknownPtr<RValue> UnaryPreOperatorNode::Create(UnknownPtr<RValue> rhs, CompileC
     return impl->value(rhs, context);
 }
 
+/// Unary Post ///
+
+UnknownPtr<RValue> UnaryPostOperatorNode::Create(UnknownPtr<RValue> lhs, CompileContext& context)
+{
+    auto op = SafeGet<UnaryPostOperatorBase>(0);
+    return op->Create(lhs, context);
+}
 
 
 

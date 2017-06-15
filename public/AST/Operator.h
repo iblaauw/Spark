@@ -4,6 +4,7 @@
 
 RULE(Operator);
 RULE(UnaryPreOperator);
+RULE(UnaryPostOperator);
 
 class OperatorImpl;
 
@@ -36,3 +37,20 @@ public:
 
     UnknownPtr<RValue> Create(UnknownPtr<RValue> rhs, CompileContext& context);
 };
+
+class UnaryPostOperatorBase : public CustomNode
+{
+public:
+    UnaryPostOperatorBase(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    virtual UnknownPtr<RValue> Create(UnknownPtr<RValue> lhs, CompileContext& context) = 0;
+};
+
+class UnaryPostOperatorNode : public CustomNode
+{
+public:
+    UnaryPostOperatorNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
+    std::string GetType() const override { return "UnaryPostOperatorNode"; }
+
+    UnknownPtr<RValue> Create(UnknownPtr<RValue> lhs, CompileContext& context);
+};
+

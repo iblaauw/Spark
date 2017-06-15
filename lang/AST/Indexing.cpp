@@ -3,28 +3,22 @@
 #include "TypeConverter.h"
 #include "AST/Common.h"
 #include "AST/Expression.h"
-#include "AST/VariableExpression.h"
 
 RULE(IndexOf)
 {
     Autoname(builder);
-    builder.Add(VariableExpression, OptionalWhitespace, '[', OptionalWhitespace, ExpressionTree, OptionalWhitespace, ']');
+    builder.Add('[', OptionalWhitespace, ExpressionTree, OptionalWhitespace, ']');
     builder.Ignore(1);
     builder.Ignore(3);
-    builder.Ignore(5);
 
     builder.SetNodeType<IndexOfNode>();
 }
 
-UnknownPtr<RValue> IndexOfNode::Evaluate(CompileContext& context)
+UnknownPtr<RValue> IndexOfNode::Create(UnknownPtr<RValue> lhs, CompileContext& context)
 {
-    Assert(customChildren.size() >= 2, "Invalid 'Index Of' Expression structure");
+    Assert(customChildren.size() >= 1, "Invalid 'Index Of' Expression structure");
 
-    auto arrayVal = customChildren[0]->Evaluate(context);
-    if (arrayVal == nullptr)
-        return nullptr;
-
-    LangType* arrayType = arrayVal->GetType();
+    LangType* arrayType = lhs->GetType();
     if (!arrayType->IsArray())
     {
         Error("The type '", arrayType->GetName() ,"' cannot be indexed. Can only index into an array.");
@@ -33,7 +27,7 @@ UnknownPtr<RValue> IndexOfNode::Evaluate(CompileContext& context)
 
     ArrayType* trueArrayType = static_cast<ArrayType*>(arrayType);
 
-    auto indexVal = customChildren[1]->Evaluate(context);
+    auto indexVal = customChildren[0]->Evaluate(context);
     if (indexVal == nullptr)
         return nullptr;
 
@@ -45,7 +39,7 @@ UnknownPtr<RValue> IndexOfNode::Evaluate(CompileContext& context)
         return nullptr;
     }
 
-    auto arrayIR = arrayVal->GetValue(context);
+    auto arrayIR = lhs->GetValue(context);
     auto indexIR = indexVal->GetValue(context);
 
     std::vector<unsigned int> indices { 1 };
