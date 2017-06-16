@@ -18,37 +18,20 @@ UnknownPtr<RValue> IndexOfNode::Create(UnknownPtr<RValue> lhs, CompileContext& c
 {
     Assert(customChildren.size() >= 1, "Invalid 'Index Of' Expression structure");
 
-    LangType* arrayType = lhs->GetType();
-    if (!arrayType->IsArray())
-    {
-        Error("The type '", arrayType->GetName() ,"' cannot be indexed. Can only index into an array.");
-        return nullptr;
-    }
-
-    ArrayType* trueArrayType = static_cast<ArrayType*>(arrayType);
-
     auto indexVal = customChildren[0]->Evaluate(context);
     if (indexVal == nullptr)
         return nullptr;
 
-    LangType* indexType = indexVal->GetType();
-    LangType* intType = context.builtins->types.Get("int");
-    if (!intType->IsAssignableFrom(indexType))
+    std::vector<UnknownPtr<RValue>> opArgs { indexVal };
+
+    LangType* leftType = lhs->GetType();
+    auto op = leftType->members.indexOperator;
+    if (op == nullptr)
     {
-        Error("Cannot use type '", indexType->GetName(), "' to index into an array, expecting index of type 'int'.");
+        Error("The type '", leftType->GetName() ,"' cannot be indexed.");
         return nullptr;
     }
 
-    auto arrayIR = lhs->GetValue(context);
-    auto indexIR = indexVal->GetValue(context);
-
-    std::vector<unsigned int> indices { 1 };
-    llvm::Value* ptrVal = context.builder.CreateExtractValue(arrayIR, indices, "array_ptr");
-
-    std::vector<llvm::Value*> indices2 { indexIR };
-    llvm::Value* finalVal = context.builder.CreateGEP(ptrVal, indices2, "array_indexed");
-
-    Ptr<PointerLValue> result = std::make_shared<PointerLValue>(finalVal, trueArrayType->GetElementType());
-    return PtrCast<RValue>(result);
+    return op->Create(lhs, opArgs, context);
 }
 

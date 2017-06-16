@@ -4,6 +4,7 @@
 #include "PtrUtils.h"
 #include "SpecialTypeCache.h"
 #include "UnknownPtr.h"
+#include "MemberTable.h"
 
 class CompileContext;
 class LValue;
@@ -14,6 +15,8 @@ class LangType
 private:
     SpecialTypeCache cache;
 public:
+    MemberTable members;
+
     LangType() : cache(this) {}
     virtual ~LangType() {}
     virtual std::string GetName() const = 0;
@@ -33,7 +36,6 @@ public:
     LangType* GetArrayOf(int size) { return cache.GetArray(size); }
 
     // TODO: add inheritance and const-ness
-    // TODO: add a map of members
 };
 
 class BasicType : public LangType

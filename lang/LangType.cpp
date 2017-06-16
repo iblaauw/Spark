@@ -4,6 +4,7 @@
 
 #include "TypeConverter.h"
 #include "CompileContext.h"
+#include "Operator.h"
 
 BasicType::BasicType(std::string name) : name(name) {}
 
@@ -43,7 +44,9 @@ void PointerType::InsertConversion(LangType* fromType, CompileContext& context) 
 
 ArrayType::ArrayType(llvm::Type* irType, LangType* subType, int size)
     : type(irType), subType(subType), size(size)
-{}
+{
+    members.indexOperator = new ArrayIndexOperator();
+}
 
 llvm::Type* ArrayType::GetIR() const
 {

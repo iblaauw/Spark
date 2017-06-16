@@ -3,6 +3,7 @@
 #include <functional>
 
 #include "AST/Indexing.h"
+#include "CompileContext.h"
 
 using LangTypePtr = UnknownPtr<LangType>;
 
@@ -267,7 +268,7 @@ bool OperatorNode::IsGroupRight() const
 
 //****  UNARY PRE  ****//
 
-class UnaryOperatorImpl
+class UnaryOperatorNodeImpl
 {
 public:
     std::function<UnknownPtr<RValue>(UnknownPtr<RValue>, CompileContext&)> value;
@@ -313,7 +314,7 @@ void UnaryPreOperatorNode::Process()
     StringValueNode::Process();
 
     std::string val = GetValue();
-    impl = std::make_shared<UnaryOperatorImpl>();
+    impl = std::make_shared<UnaryOperatorNodeImpl>();
 
     if (val == "*")
     {

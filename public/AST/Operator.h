@@ -24,12 +24,12 @@ public:
     bool IsGroupRight() const;
 };
 
-class UnaryOperatorImpl;
+class UnaryOperatorNodeImpl; // TODO: get rid of this
 
 class UnaryPreOperatorNode : public StringValueNode
 {
 private:
-    Ptr<UnaryOperatorImpl> impl;
+    Ptr<UnaryOperatorNodeImpl> impl;
 public:
     UnaryPreOperatorNode(std::vector<NodePtr>& nodes) : StringValueNode(nodes) {}
     std::string GetType() const override { return "UnaryPreOperatorNode"; }
