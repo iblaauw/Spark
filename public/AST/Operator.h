@@ -6,22 +6,18 @@ RULE(Operator);
 RULE(UnaryPreOperator);
 RULE(UnaryPostOperator);
 
-class OperatorImpl;
-
 class OperatorNode : public StringValueNode
 {
-private:
-    Ptr<OperatorImpl> impl;
 public:
     OperatorNode(std::vector<NodePtr>& nodes) : StringValueNode(nodes) {}
     std::string GetType() const override { return "OperatorNode"; }
-    void Process() override;
 
-    LangType* GetResultType(LangType* lhs, LangType* rhs, CompileContext& context); // return nullptr if incompatible
-    llvm::Value* Create(llvm::Value* lhs, llvm::Value* rhs, CompileContext& context);
+    UnknownPtr<RValue> Create(UnknownPtr<RValue> lhs, UnknownPtr<RValue> rhs, CompileContext& context);
 
     int GetPrecedence() const;
     bool IsGroupRight() const;
+private:
+    BinaryOperatorImpl* FindImplDir(LangType* lhs, LangType* rhs);
 };
 
 class UnaryOperatorNodeImpl; // TODO: get rid of this
@@ -53,4 +49,5 @@ public:
 
     UnknownPtr<RValue> Create(UnknownPtr<RValue> lhs, CompileContext& context);
 };
+
 

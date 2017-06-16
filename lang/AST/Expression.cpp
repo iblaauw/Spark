@@ -165,21 +165,7 @@ UnknownPtr<RValue> ExpressionTreeNode::EvalBinary(CompileContext& context)
     if (rhs == nullptr)
         return nullptr;
 
-    LangType* ltype = lhs->GetType();
-    LangType* rtype = rhs->GetType();
-    LangType* resultType = op->GetResultType(ltype, rtype, context);
-    if (resultType == nullptr)
-    {
-        Error("cannot apply operator '", op->GetValue(), "' to values of type '",
-                ltype->GetName(), "' and '", rtype->GetName(), "'.");
-        return nullptr;
-    }
-
-    llvm::Value* lval = lhs->GetValue(context);
-    llvm::Value* rval = rhs->GetValue(context);
-    llvm::Value* resultValue = op->Create(lval, rval, context);
-    auto finalResult = std::make_shared<GeneralRValue>(resultValue, resultType);
-    return PtrCast<RValue>(finalResult);
+    return op->Create(lhs, rhs, context);
 }
 
 UnknownPtr<RValue> ExpressionTreeNode::EvalUnaryPre(CompileContext& context)

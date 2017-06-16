@@ -42,176 +42,42 @@ RULE(UnaryPostOperator)
     builder.SetNodeType<UnaryPostOperatorNode>();
 }
 
-class OperatorImpl
+UnknownPtr<RValue> OperatorNode::Create(UnknownPtr<RValue> lhs, UnknownPtr<RValue> rhs, CompileContext& context)
 {
-public:
-    std::function<LangType*(LangType*, LangType*, CompileContext&)> type;
-    std::function<llvm::Value*(llvm::Value*, llvm::Value*, CompileContext&)> value;
-};
+    LangType* ltype = lhs->GetType();
+    LangType* rtype = rhs->GetType();
 
-static LangType* IntOnly(LangType* a, LangType* b, CompileContext& context)
-{
-    LangType* intType = context.builtins->types.Get("int");
-    if (a != intType || b != intType)
-        return nullptr;
-    return intType;
+    BinaryOperatorImpl* impl = FindImplDir(ltype, rtype);
+    if (impl == nullptr)
+    {
+        impl = FindImplDir(rtype, ltype);
+
+        if (impl == nullptr)
+        {
+            Error("cannot apply operator '", GetValue(), "' to values of type '",
+                    ltype->GetName(), "' and '", rtype->GetName(), "'.");
+            return nullptr;
+        }
+    }
+
+    return impl->Create(lhs, rhs, context);
 }
 
-static LangType* IntOrBoolCompare(LangType* a, LangType* b, CompileContext& context)
+BinaryOperatorImpl* OperatorNode::FindImplDir(LangType* lhs, LangType* rhs)
 {
-    LangType* intType = context.builtins->types.Get("int");
-    LangType* boolType = context.builtins->types.Get("bool");
-    if (a == intType && b == intType)
-        return boolType;
-
-    if (a == boolType && b == boolType)
-        return boolType;
-
-    return nullptr;
-}
-
-static LangType* IntCompare(LangType* a, LangType* b, CompileContext& context)
-{
-    LangType* intType = context.builtins->types.Get("int");
-    LangType* boolType = context.builtins->types.Get("bool");
-    if (a == intType && b == intType)
-        return boolType;
-
-    return nullptr;
-}
-
-static llvm::Value* PlusVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
-{
-    return context.builder.CreateAdd(a, b, "int_add");
-}
-
-static llvm::Value* SubtractVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
-{
-    return context.builder.CreateSub(a, b, "int_sub");
-}
-
-static llvm::Value* MultiplyVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
-{
-    return context.builder.CreateMul(a,b, "int_mul");
-}
-
-static llvm::Value* DivideVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
-{
-    return context.builder.CreateSDiv(a,b, "int_div");
-}
-
-static llvm::Value* EqualsVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
-{
-    return context.builder.CreateICmpEQ(a, b, "equals");
-}
-
-static llvm::Value* NotEqualsVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
-{
-    return context.builder.CreateICmpNE(a, b, "not_equals");
-}
-
-static llvm::Value* GreaterThanVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
-{
-    return context.builder.CreateICmpSGT(a, b, "greater");
-}
-
-static llvm::Value* LessThanVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
-{
-    return context.builder.CreateICmpSLT(a, b, "less");
-}
-
-static llvm::Value* GreaterEqualVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
-{
-    return context.builder.CreateICmpSGE(a, b, "greater_equal");
-}
-
-static llvm::Value* LessEqualVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
-{
-    return context.builder.CreateICmpSLE(a, b, "less_equal");
-}
-
-static llvm::Value* ModuloVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
-{
-    return context.builder.CreateSRem(a, b, "mod");
-}
-
-void OperatorNode::Process()
-{
-    StringValueNode::Process();
-
-    impl = std::make_shared<OperatorImpl>();
-
     std::string op = GetValue();
-    if (op == "+")
-    {
-        impl->type = IntOnly;
-        impl->value = PlusVal;
-    }
-    else if (op == "-")
-    {
-        impl->type = IntOnly;
-        impl->value = SubtractVal;
-    }
-    else if (op == "*")
-    {
-        impl->type = IntOnly;
-        impl->value = MultiplyVal;
-    }
-    else if (op == "/")
-    {
-        impl->type = IntOnly;
-        impl->value = DivideVal;
-    }
-    else if (op == "==")
-    {
-        impl->type = IntOrBoolCompare;
-        impl->value = EqualsVal;
-    }
-    else if (op == "!=")
-    {
-        impl->type = IntOrBoolCompare;
-        impl->value = NotEqualsVal;
-    }
-    else if (op == "<")
-    {
-        impl->type = IntCompare;
-        impl->value = LessThanVal;
-    }
-    else if (op == ">")
-    {
-        impl->type = IntCompare;
-        impl->value = GreaterThanVal;
-    }
-    else if (op == "<=")
-    {
-        impl->type = IntCompare;
-        impl->value = LessEqualVal;
-    }
-    else if (op == ">=")
-    {
-        impl->type = IntCompare;
-        impl->value = GreaterEqualVal;
-    }
-    else if (op == "%")
-    {
-        impl->type = IntOnly;
-        impl->value = ModuloVal;
-    }
-    else
-    {
-        Assert(false, "unknown operator '", op, "'");
-    }
+    auto iter = lhs->members.binaryOperators.find(op);
+    if (iter == lhs->members.binaryOperators.end())
+        return nullptr;
+
+    auto& mapping = iter->second;
+    auto iter2 = mapping.find(rhs);
+    if (iter2 == mapping.end())
+        return nullptr;
+
+    return iter2->second;
 }
 
-LangType* OperatorNode::GetResultType(LangType* lhs, LangType* rhs, CompileContext& context)
-{
-    return impl->type(lhs, rhs, context);
-}
-
-llvm::Value* OperatorNode::Create(llvm::Value* lhs, llvm::Value* rhs, CompileContext& context)
-{
-    return impl->value(lhs, rhs, context);
-}
 
 static std::map<std::string, int> _binary_precedence
 {

@@ -16,7 +16,7 @@ public:
 class BinaryOperatorImpl
 {
 public:
-    virtual UnknownPtr<RValue> Create(UnknownPtr<RValue> lhs, CompileContext& context) = 0;
+    virtual UnknownPtr<RValue> Create(UnknownPtr<RValue> lhs, UnknownPtr<RValue> rhs, CompileContext& context) = 0;
 };
 
 class SpecialOperatorImpl

@@ -3,6 +3,7 @@
 #include "LangType.h"
 #include "Function.h"
 #include "TypeConverter.h"
+#include "Operator.h"
 
 using HiddenTable = std::map<std::string, llvm::Function*>;
 
@@ -107,15 +108,18 @@ void AddBuiltinTypes(SymbolTable& symbolTable)
 
     type = _CreateType<int>("int");
     symbolTable.types.Add(type->GetName(), type);
+    AddIntOperators(type);
 
     type = _CreateType<char>("char");
     symbolTable.types.Add(type->GetName(), type);
 
     type = _CreateType<bool>("bool");
     symbolTable.types.Add(type->GetName(), type);
+    AddBoolOperators(type);
 
     type = _CreateStringType();
     symbolTable.types.Add(type->GetName(), type);
+
 }
 
 void AddBuiltinFunctions(SymbolTable& symbolTable)

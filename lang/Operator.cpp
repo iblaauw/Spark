@@ -1,5 +1,7 @@
 #include "Operator.h"
 
+#include <functional>
+
 #include "Errors.h"
 #include "CompileContext.h"
 
@@ -43,4 +45,105 @@ UnknownPtr<RValue> ArrayIndexOperator::Create(UnknownPtr<RValue> lhs, std::vecto
     return PtrCast<RValue>(result);
 }
 
+using ValueFactory = std::function<llvm::Value*(llvm::Value*, llvm::Value*, CompileContext&)>;
+
+class BasicBinaryOperator : public BinaryOperatorImpl
+{
+private:
+    std::string retType;
+    ValueFactory factory;
+public:
+    BasicBinaryOperator(ValueFactory factory, std::string retType)
+        : retType(retType), factory(factory) {}
+
+    RValuePtr Create(RValuePtr lhs, RValuePtr rhs, CompileContext& context) override
+    {
+        LangType* intType = context.builtins->types.Get(retType);
+        auto valL = lhs->GetValue(context);
+        auto valR = rhs->GetValue(context);
+
+        llvm::Value* resultVal = factory(valL, valR, context);
+
+        Ptr<GeneralRValue> result = std::make_shared<GeneralRValue>(resultVal, intType);
+        return PtrCast<RValue>(result);
+    }
+};
+
+static llvm::Value* PlusVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateAdd(a, b, "int_add");
+}
+
+static llvm::Value* SubtractVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateSub(a, b, "int_sub");
+}
+
+static llvm::Value* MultiplyVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateMul(a,b, "int_mul");
+}
+
+static llvm::Value* DivideVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateSDiv(a,b, "int_div");
+}
+
+static llvm::Value* EqualsVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateICmpEQ(a, b, "equals");
+}
+
+static llvm::Value* NotEqualsVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateICmpNE(a, b, "not_equals");
+}
+
+static llvm::Value* GreaterThanVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateICmpSGT(a, b, "greater");
+}
+
+static llvm::Value* LessThanVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateICmpSLT(a, b, "less");
+}
+
+static llvm::Value* GreaterEqualVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateICmpSGE(a, b, "greater_equal");
+}
+
+static llvm::Value* LessEqualVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateICmpSLE(a, b, "less_equal");
+}
+
+static llvm::Value* ModuloVal(llvm::Value* a, llvm::Value* b, CompileContext& context)
+{
+    return context.builder.CreateSRem(a, b, "mod");
+}
+
+void AddIntOperators(LangType* intType)
+{
+    auto& ops = intType->members.binaryOperators;
+    ops["+"][intType] = new BasicBinaryOperator(PlusVal, "int");
+    ops["-"][intType] = new BasicBinaryOperator(SubtractVal, "int");
+    ops["*"][intType] = new BasicBinaryOperator(MultiplyVal, "int");
+    ops["/"][intType] = new BasicBinaryOperator(DivideVal, "int");
+    ops["=="][intType] = new BasicBinaryOperator(EqualsVal, "bool");
+    ops["!="][intType] = new BasicBinaryOperator(NotEqualsVal, "bool");
+    ops[">"][intType] = new BasicBinaryOperator(GreaterThanVal, "bool");
+    ops["<"][intType] = new BasicBinaryOperator(LessThanVal, "bool");
+    ops[">="][intType] = new BasicBinaryOperator(GreaterEqualVal, "bool");
+    ops["<="][intType] = new BasicBinaryOperator(LessEqualVal, "bool");
+    ops["%"][intType] = new BasicBinaryOperator(ModuloVal, "int");
+}
+
+void AddBoolOperators(LangType* boolType)
+{
+    auto& ops = boolType->members.binaryOperators;
+    ops["=="][boolType] = new BasicBinaryOperator(EqualsVal, "bool");
+    ops["!="][boolType] = new BasicBinaryOperator(NotEqualsVal, "bool");
+}
 

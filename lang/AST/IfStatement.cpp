@@ -31,6 +31,8 @@ void IfStatementNode::Generate(CompileContext& context)
 
     // Recurse condition
     auto condition = customChildren[0]->Evaluate(context);
+    if (condition == nullptr)
+        return;
 
     LangType* ctype = condition->GetType();
     LangType* boolType = context.builtins->types.Get("bool");
