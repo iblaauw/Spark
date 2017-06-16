@@ -45,6 +45,42 @@ UnknownPtr<RValue> ArrayIndexOperator::Create(UnknownPtr<RValue> lhs, std::vecto
     return PtrCast<RValue>(result);
 }
 
+RValuePtr DereferenceOperator::Create(RValuePtr rhs, CompileContext& context)
+{
+    LangType* type = rhs->GetType();
+    if (!type->IsPointer())
+    {
+        Error("Cannot dereference a value that isn't a pointer.\n Expected pointer but received type '", type->GetName(), "'");
+        return nullptr;
+    }
+
+    PointerType* ptrType = static_cast<PointerType*>(type);
+    LangType* resultType = ptrType->GetSubType();
+
+    llvm::Value* result = rhs->GetValue(context);
+    if (result == nullptr)
+        return nullptr;
+
+    Ptr<PointerLValue> lval_result = std::make_shared<PointerLValue>(result, resultType);
+    return PtrCast<RValue>(lval_result);
+}
+
+RValuePtr AddressOfOperator::Create(RValuePtr rhs, CompileContext& context)
+{
+    if (!rhs->IsLValue())
+    {
+        Error("Can only find the address of a variable or valid l-value");
+        return nullptr;
+    }
+
+    UnknownPtr<LValue> lval = rhs.Cast<LValue>();
+    llvm::Value* result = lval->GetAddress(context);
+    LangType* resultType = lval->GetType()->GetPointerTo();
+    auto resultValue = std::make_shared<GeneralRValue>(result, resultType);
+    return PtrCast<RValue>(resultValue);
+}
+
+
 using ValueFactory = std::function<llvm::Value*(llvm::Value*, llvm::Value*, CompileContext&)>;
 
 class BasicBinaryOperator : public BinaryOperatorImpl

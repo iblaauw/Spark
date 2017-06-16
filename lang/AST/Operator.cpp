@@ -4,6 +4,7 @@
 
 #include "AST/Indexing.h"
 #include "CompileContext.h"
+#include "Operator.h"
 
 using LangTypePtr = UnknownPtr<LangType>;
 
@@ -134,73 +135,34 @@ bool OperatorNode::IsGroupRight() const
 
 //****  UNARY PRE  ****//
 
-class UnaryOperatorNodeImpl
-{
-public:
-    std::function<UnknownPtr<RValue>(UnknownPtr<RValue>, CompileContext&)> value;
-};
-
-static UnknownPtr<RValue> PointerDeref(UnknownPtr<RValue> rval, CompileContext& context)
-{
-    LangType* type = rval->GetType();
-    if (!type->IsPointer())
-    {
-        Error("Cannot dereference a value that isn't a pointer.\n Expected pointer but received type '", type->GetName(), "'");
-        return nullptr;
-    }
-
-    PointerType* ptrType = static_cast<PointerType*>(type);
-    LangType* resultType = ptrType->GetSubType();
-
-    llvm::Value* result = rval->GetValue(context);
-    if (result == nullptr)
-        return nullptr;
-
-    Ptr<PointerLValue> lval_result = std::make_shared<PointerLValue>(result, resultType);
-    return PtrCast<RValue>(lval_result);
-}
-
-static UnknownPtr<RValue> AddrOfValue(UnknownPtr<RValue> rval, CompileContext& context)
-{
-    if (!rval->IsLValue())
-    {
-        Error("Can only find the address of a variable or valid l-value");
-        return nullptr;
-    }
-
-    UnknownPtr<LValue> lval = rval.Cast<LValue>();
-    llvm::Value* result = lval->GetAddress(context);
-    LangType* resultType = lval->GetType()->GetPointerTo();
-    auto resultValue = std::make_shared<GeneralRValue>(result, resultType);
-    return PtrCast<RValue>(resultValue);
-}
-
-void UnaryPreOperatorNode::Process()
-{
-    StringValueNode::Process();
-
-    std::string val = GetValue();
-    impl = std::make_shared<UnaryOperatorNodeImpl>();
-
-    if (val == "*")
-    {
-        impl->value = PointerDeref;
-    }
-    else if (val == "&")
-    {
-        impl->value = AddrOfValue;
-    }
-    else
-    {
-        Assert(false, "Unknown unary operator '", val, "'");
-    }
-}
-
-
 UnknownPtr<RValue> UnaryPreOperatorNode::Create(UnknownPtr<RValue> rhs, CompileContext& context)
 {
-    Assert(impl != nullptr, "null impl");
-    return impl->value(rhs, context);
+    LangType* rtype = rhs->GetType();
+
+    UnaryOperatorImpl* impl = FindOp(rtype);
+    if (impl == nullptr)
+    {
+        Error("Cannot use operator '", GetValue(), "' on value of type '", rtype->GetName(), "'.");
+        return nullptr;
+    }
+
+    return impl->Create(rhs, context);
+}
+
+UnaryOperatorImpl* UnaryPreOperatorNode::FindOp(LangType* type)
+{
+    std::string op = GetValue();
+    if (op == "&") // '&' can't be overloaded, so it has somewhat special treatment
+    {
+        return &(AddressOfOperator::Instance());
+    }
+
+    auto& opMap = type->members.unaryOperators;
+    auto iter = opMap.find(op);
+    if (iter == opMap.end())
+        return nullptr;
+
+    return iter->second;
 }
 
 /// Unary Post ///

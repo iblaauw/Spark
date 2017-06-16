@@ -20,18 +20,14 @@ private:
     BinaryOperatorImpl* FindImplDir(LangType* lhs, LangType* rhs);
 };
 
-class UnaryOperatorNodeImpl; // TODO: get rid of this
-
 class UnaryPreOperatorNode : public StringValueNode
 {
-private:
-    Ptr<UnaryOperatorNodeImpl> impl;
 public:
     UnaryPreOperatorNode(std::vector<NodePtr>& nodes) : StringValueNode(nodes) {}
     std::string GetType() const override { return "UnaryPreOperatorNode"; }
-    void Process() override;
 
     UnknownPtr<RValue> Create(UnknownPtr<RValue> rhs, CompileContext& context);
+    UnaryOperatorImpl* FindOp(LangType* type);
 };
 
 class UnaryPostOperatorBase : public CustomNode

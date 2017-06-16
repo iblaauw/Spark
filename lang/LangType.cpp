@@ -20,7 +20,10 @@ void BasicType::InsertConversion(LangType* fromType, CompileContext& context) co
     // NOOP (default will not need to convert)
 }
 
-PointerType::PointerType(LangType* subType) : subType(subType) {}
+PointerType::PointerType(LangType* subType) : subType(subType)
+{
+    members.unaryOperators["*"] = &(DereferenceOperator::Instance());
+}
 
 llvm::Type* PointerType::GetIR() const
 {
@@ -45,7 +48,7 @@ void PointerType::InsertConversion(LangType* fromType, CompileContext& context) 
 ArrayType::ArrayType(llvm::Type* irType, LangType* subType, int size)
     : type(irType), subType(subType), size(size)
 {
-    members.indexOperator = new ArrayIndexOperator();
+    members.indexOperator = &(ArrayIndexOperator::Instance());
 }
 
 llvm::Type* ArrayType::GetIR() const

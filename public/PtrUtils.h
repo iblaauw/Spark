@@ -48,3 +48,20 @@ void Filter(U func, std::vector<T>& vec)
     }
 }
 
+template <class T>
+class Singleton
+{
+protected:
+    Singleton() {}
+    Singleton(const Singleton<T>& other) = delete;
+    Singleton(Singleton<T>&& other) = delete;
+    Singleton<T>& operator= (const Singleton<T>& other) = delete;
+    Singleton<T>& operator= (Singleton<T>&& other) = delete;
+public:
+    static T& Instance()
+    {
+        static T instance;
+        return instance;
+    }
+};
+
