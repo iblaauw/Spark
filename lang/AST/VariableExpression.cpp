@@ -20,12 +20,18 @@ UnknownPtr<RValue> VariableExpressionNode::Evaluate(CompileContext& context)
     std::string varname = identifier->GetValue();
 
     LValue* var = context.symbolTable->variables.Get(varname);
-    if (var == nullptr)
+    if (var != nullptr)
+        return var;
+
+    Function* func = context.symbolTable->functions.Get(varname);
+
+    if (func != nullptr)
     {
-        Error("no variable named '", varname, "' exists");
-        return nullptr;
+        auto result = std::make_shared<GeneralRValue>(func->GetIR(), func->GetFuncType());
+        return PtrCast<RValue>(result);
     }
 
-    return var;
+    Error("no variable named '", varname, "' exists");
+    return nullptr;
 }
 

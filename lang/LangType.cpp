@@ -117,6 +117,8 @@ FunctionType::FunctionType(LangType* retType, const std::vector<LangType*>& para
     auto converter = [](LangType* lt) { return lt->GetIR(); };
     ::Map(converter, parameterTypes, irParams);
     irType = manager.GetFuncSignature(retType->GetIR(), irParams);
+
+    members.callOperator = &(FuncCallOperator::Instance());
 }
 
 bool FunctionType::IsAssignableFrom(LangType* otherType) const

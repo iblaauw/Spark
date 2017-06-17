@@ -25,6 +25,7 @@ public:
 
     virtual bool IsPointer() const { return false; }
     virtual bool IsArray() const { return false; }
+    virtual bool IsFunction() const { return false; }
 
     virtual bool IsAssignableFrom(LangType* otherType) const = 0;
     virtual void InsertConversion(LangType* fromType, CompileContext& context) const = 0;
@@ -119,6 +120,8 @@ private:
 public:
     std::string GetName() const override { return GetName(returnType, parameterTypes); }
     llvm::Type* GetIR() const override { return irType; }
+
+    bool IsFunction() const override { return true; }
 
     llvm::FunctionType* GetFuncIR() const { return irType; }
 

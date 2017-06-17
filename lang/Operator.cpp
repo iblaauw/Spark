@@ -5,6 +5,8 @@
 #include "Errors.h"
 #include "CompileContext.h"
 
+//// ArrayIndexOperator ////
+
 UnknownPtr<RValue> ArrayIndexOperator::Create(UnknownPtr<RValue> lhs, std::vector<UnknownPtr<RValue>>& args, CompileContext& context)
 {
     if (args.size() != 1)
@@ -45,6 +47,8 @@ UnknownPtr<RValue> ArrayIndexOperator::Create(UnknownPtr<RValue> lhs, std::vecto
     return PtrCast<RValue>(result);
 }
 
+//// DereferenceOperator ////
+
 RValuePtr DereferenceOperator::Create(RValuePtr rhs, CompileContext& context)
 {
     LangType* type = rhs->GetType();
@@ -65,6 +69,8 @@ RValuePtr DereferenceOperator::Create(RValuePtr rhs, CompileContext& context)
     return PtrCast<RValue>(lval_result);
 }
 
+//// AddressOfOperator ////
+
 RValuePtr AddressOfOperator::Create(RValuePtr rhs, CompileContext& context)
 {
     if (!rhs->IsLValue())
@@ -80,6 +86,60 @@ RValuePtr AddressOfOperator::Create(RValuePtr rhs, CompileContext& context)
     return PtrCast<RValue>(resultValue);
 }
 
+//// FuncCallOperator ////
+
+RValuePtr FuncCallOperator::Create(RValuePtr lhs, std::vector<RValuePtr>& argVals, CompileContext& context)
+{
+    LangType* ltype = lhs->GetType();
+    Assert(ltype->IsFunction(), "Expected function but recieved a non-function");
+
+    FunctionType* funcType = static_cast<FunctionType*>(ltype);
+    if (!IsCompatible(funcType, argVals))
+        return nullptr;
+
+    auto funcDef = lhs->GetValue(context);
+    std::vector<llvm::Value*> args;
+    auto converter = [&context](UnknownPtr<RValue> rv) { return rv->GetValue(context); };
+    ::Map(converter, argVals, args);
+
+    llvm::Value* value = context.builder.CreateCall(funcDef, args);
+
+    LangType* retType = funcType->ReturnType();
+    auto ptrVal = std::make_shared<GeneralRValue>(value, retType);
+    return PtrCast<RValue>(ptrVal);
+}
+
+bool FuncCallOperator::IsCompatible(FunctionType* funcType, std::vector<RValuePtr>& args)
+{
+    const auto& paramTypes = funcType->ParameterTypes();
+    if (args.size() != paramTypes.size())
+    {
+        Error("wrong number of arguments to call a function '", funcType->GetName(), "'\n",
+                "Expected ", paramTypes.size(), " arguments but recieved ", args.size());
+        return false;
+    }
+
+    auto converter = [](UnknownPtr<RValue> rv) { return rv->GetType(); };
+    std::vector<LangType*> argTypes;
+    ::Map(converter, args, argTypes);
+
+    for (unsigned int i = 0; i < paramTypes.size(); i++)
+    {
+        LangType* a = argTypes[i];
+        LangType* p = paramTypes[i];
+
+        if (!p->IsAssignableFrom(a))
+        {
+            Error("invalid argument ", i, " when calling a function '", funcType->GetName(), "'\n",
+                    "Cannot convert from type '", a->GetName(), "' to '", p->GetName(), "'");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+//// BasicBinaryOperator ////
 
 using ValueFactory = std::function<llvm::Value*(llvm::Value*, llvm::Value*, CompileContext&)>;
 

@@ -40,6 +40,8 @@ void SetError();
 void SetCurrentFile(std::istream& input);
 std::istream& GetCurrentFile();
 
+void PrintStackTrace(std::ostream& out);
+
 class AssertionException : public std::exception
 {};
 
@@ -52,6 +54,7 @@ void Assert(bool b, T1 arg1, Types... args)
         _DoPrint(std::cerr, arg1, args...);
         std::cerr << std::endl;
         SetError();
+        PrintStackTrace(std::cerr);
         throw AssertionException();
     }
 }
@@ -75,4 +78,5 @@ void ErrorWithPosition(Spark::DebugInfo info, Type1 t1, Types... types)
     std::cerr << message << std::endl;
     SetError();
 }
+
 

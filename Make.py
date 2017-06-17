@@ -372,6 +372,7 @@ def main():
     cpp2o_rule.flags.append('-fexceptions') # because llvm is dumb
 
     o2exe_rule.executable_name = "parser"
+    o2exe_rule.flags.append('-rdynamic')
     o2exe_rule.post_flags.extend(llvm_link_flags)
     o2exe_rule.libraries.append('pthread')
     o2exe_rule.libraries.append('dl')

@@ -16,7 +16,9 @@ public:
 RULE(FuncCall)
 {
     Autoname(builder);
-    builder.Add(Identifier, '(', FuncCallArgsList, ')');
+    builder.Add('(', OptionalWhitespace, FuncCallArgsList, OptionalWhitespace, ')');
+    builder.Ignore(1);
+    builder.Ignore(3);
 
     builder.SetNodeType<FuncCallNode>();
 }
@@ -39,14 +41,13 @@ RULE(FuncCallArgsList)
     builder.SetNodeType<FuncCallArgsListNode>();
 }
 
+/*
 void FuncCallNode::Process()
 {
     ConvertToOnlyCustom();
     CustomNode::Process();
 }
 
-
-#include "llvm/Support/raw_ostream.h"
 
 UnknownPtr<RValue> FuncCallNode::Evaluate(CompileContext& context)
 {
@@ -110,7 +111,30 @@ bool FuncCallNode::IsCompatible(const std::vector<UnknownPtr<RValue>>& args, Fun
 
     return true;
 }
+*/
 
+//// FuncCallNode2 ////
+
+UnknownPtr<RValue> FuncCallNode::Create(UnknownPtr<RValue> lhs, CompileContext& context)
+{
+    LangType* ltype = lhs->GetType();
+
+    SpecialOperatorImpl* opImpl = ltype->members.callOperator;
+    if (opImpl == nullptr)
+    {
+        Error("Value of type '", ltype->GetName(), "' is not callable.");
+        return nullptr;
+    }
+
+    auto argsNode = SafeGet<FuncCallArgsListNode>(0, "FuncCallArgsListNode");
+    std::vector<UnknownPtr<RValue>> argValues;
+    argsNode->EvalAll(context, argValues);
+
+    return opImpl->Create(lhs, argValues, context);
+}
+
+
+//// FuncCallArgsListNode ////
 
 void FuncCallArgsListNode::EvalAll(CompileContext& context, std::vector<UnknownPtr<RValue>>& evalOut)
 {

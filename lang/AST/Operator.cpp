@@ -3,6 +3,7 @@
 #include <functional>
 
 #include "AST/Indexing.h"
+#include "AST/FuncCall.h"
 #include "CompileContext.h"
 #include "Operator.h"
 
@@ -39,6 +40,7 @@ RULE(UnaryPostOperator)
 {
     Autoname(builder);
     builder.Add(IndexOf);
+    builder.Add(FuncCall);
 
     builder.SetNodeType<UnaryPostOperatorNode>();
 }

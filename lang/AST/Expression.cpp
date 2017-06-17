@@ -52,7 +52,6 @@ RULE(Expression)
     builder.Add(NumberLiteral);
     builder.Add(StringLiteral);
     builder.Add(ParensExpression);
-    builder.Add(FuncCall);
     builder.Add(IndexOf);
     builder.Add(VariableExpression);
 

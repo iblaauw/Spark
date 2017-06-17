@@ -24,6 +24,14 @@ public:
     RValuePtr Create(RValuePtr rhs, CompileContext& context) override;
 };
 
+class FuncCallOperator : public SpecialOperatorImpl, public Singleton<FuncCallOperator>
+{
+public:
+    RValuePtr Create(RValuePtr lhs, std::vector<RValuePtr>& args, CompileContext& context) override;
+private:
+    bool IsCompatible(FunctionType* funcType, std::vector<RValuePtr>& args);
+};
+
 void AddIntOperators(LangType* intType);
 void AddBoolOperators(LangType* boolType);
 

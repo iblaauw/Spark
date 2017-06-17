@@ -1,11 +1,21 @@
 #pragma once
 
 #include "AST/RuleBase.h"
+#include "AST/Operator.h"
 
 RULE(FuncCall);
 RULE(FuncCallArgsList);
 
+class FuncCallNode : public UnaryPostOperatorBase
+{
+public:
+    FuncCallNode(std::vector<NodePtr>& nodes) : UnaryPostOperatorBase(nodes) {}
+    std::string GetType() const override { return "FuncCallNode"; }
 
+    UnknownPtr<RValue> Create(UnknownPtr<RValue> lhs, CompileContext& context) override;
+};
+
+/*
 class FuncCallNode : public CustomNode
 {
 public:
@@ -18,6 +28,7 @@ public:
 private:
     bool IsCompatible(const std::vector<UnknownPtr<RValue>>& args, Function* func);
 };
+*/
 
 class FuncCallArgsListNode : public AbsorbingNode
 {
