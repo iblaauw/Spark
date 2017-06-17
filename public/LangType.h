@@ -1,6 +1,7 @@
 #pragma once
 
 #include "llvm/IR/Type.h"
+#include "llvm/IR/DerivedTypes.h"
 #include "PtrUtils.h"
 #include "SpecialTypeCache.h"
 #include "UnknownPtr.h"
@@ -103,6 +104,33 @@ private:
     static llvm::Type* CreateMasterType(LangType* subType);
 
     friend class SpecialTypeCache;
+};
+
+class FunctionType : public LangType
+{
+private:
+    static std::map<std::string, FunctionType*> funcCache;
+
+    LangType* returnType;
+    std::vector<LangType*> parameterTypes;
+    llvm::FunctionType* irType;
+
+    FunctionType(LangType* retType, const std::vector<LangType*>& params);
+public:
+    std::string GetName() const override { return GetName(returnType, parameterTypes); }
+    llvm::Type* GetIR() const override { return irType; }
+
+    llvm::FunctionType* GetFuncIR() const { return irType; }
+
+    bool IsAssignableFrom(LangType* otherType) const override;
+    void InsertConversion(LangType* fromType, CompileContext& context) const override;
+
+    LangType* ReturnType() const { return returnType; }
+    const std::vector<LangType*>& ParameterTypes() const { return parameterTypes; }
+
+    static FunctionType* Create(LangType* retType, const std::vector<LangType*>& params);
+private:
+    static std::string GetName(LangType* retType, const std::vector<LangType*>& params);
 };
 
 

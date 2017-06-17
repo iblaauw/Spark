@@ -1,6 +1,6 @@
 #include "LangType.h"
 
-#include "llvm/IR/DerivedTypes.h"
+#include <sstream>
 
 #include "TypeConverter.h"
 #include "CompileContext.h"
@@ -44,6 +44,8 @@ void PointerType::InsertConversion(LangType* fromType, CompileContext& context) 
 {
     // NOOP
 }
+
+//// ArrayType ////
 
 ArrayType::ArrayType(llvm::Type* irType, LangType* subType, int size)
     : type(irType), subType(subType), size(size)
@@ -102,5 +104,55 @@ void ArrayType::CallConstructor(UnknownPtr<LValue> lval,
     return llvm::StructType::create(types, subType->GetName() + "_array_t");
 }
 
+//// FunctionType ////
 
+/*static*/ std::map<std::string, FunctionType*> FunctionType::funcCache;
+
+FunctionType::FunctionType(LangType* retType, const std::vector<LangType*>& params)
+    : returnType(retType), parameterTypes(params)
+{
+    auto& manager = Spark::LLVMManager::Instance();
+
+    std::vector<llvm::Type*> irParams;
+    auto converter = [](LangType* lt) { return lt->GetIR(); };
+    ::Map(converter, parameterTypes, irParams);
+    irType = manager.GetFuncSignature(retType->GetIR(), irParams);
+}
+
+bool FunctionType::IsAssignableFrom(LangType* otherType) const
+{
+    return otherType == this;
+}
+
+void FunctionType::InsertConversion(LangType* fromType, CompileContext& context) const
+{
+    // Noop for now
+}
+
+
+/*static*/ FunctionType* FunctionType::Create(LangType* retType, const std::vector<LangType*>& params)
+{
+    std::string name = GetName(retType, params);
+    auto it = funcCache.find(name);
+    if (it != funcCache.end())
+        return it->second;
+
+    FunctionType* val = new FunctionType(retType, params);
+    funcCache[name] = val;
+    return val;
+}
+
+/*static*/ std::string FunctionType::GetName(LangType* retType, const std::vector<LangType*>& params)
+{
+    std::stringstream ss;
+    ss << "func:";
+    ss << retType->GetName();
+    ss << "(";
+    for (LangType* lt : params)
+    {
+        ss << lt->GetName();
+    }
+    ss << ")";
+    return ss.str();
+}
 

@@ -13,25 +13,21 @@ class Function
 {
 private:
     std::string name;
-    LangType* returnType;
-    std::vector<LangType*> parameterTypes;
+    FunctionType* funcType;
     std::vector<std::string> parameterNames;
     llvm::Function* func;
     std::vector<Variable*> allocationSet;
 public:
 
     Function(std::string name,
-            LangType* returnType,
-            const std::vector<LangType*>& parameterTypes,
+            FunctionType* funcType,
             const std::vector<std::string>& parameterNames);
 
     std::string GetName() const { return name; }
 
-    LangType* ReturnType() const { return returnType; }
+    FunctionType* GetFuncType() const { return funcType; }
 
-    const std::vector<LangType*>& ParameterTypes() { return parameterTypes; }
-
-    const std::vector<std::string>& ParameterNames() { return parameterNames; }
+    const std::vector<std::string>& GetParameterNames() { return parameterNames; }
 
     llvm::Function* GetIR() const { return func; }
     void SetIR(llvm::Function* func) { this->func = func; }
@@ -42,3 +38,4 @@ public:
     void RegisterForAllocation(Variable* var);
     void AllocateAndInitialize(CompileContext& context);
 };
+

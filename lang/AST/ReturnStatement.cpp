@@ -28,7 +28,7 @@ void ReturnStatementNode::Generate(CompileContext& context)
 {
     Assert(context.currentFunction != nullptr, "return statement not inside a function");
 
-    LangType* retType = context.currentFunction->ReturnType();
+    LangType* retType = context.currentFunction->GetFuncType()->ReturnType();
 
     size_t size = customChildren.size();
 

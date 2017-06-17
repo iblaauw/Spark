@@ -92,16 +92,22 @@ void FunctionNode::GatherSymbols(CompileContext& context)
     paramListNode->GetParamNames(paramNames);
     LangType* retType = retTypeNode->GetIRType();
 
-    // Create the actual function
-    funcDefinition = context.symbolTable->functions.Create(funcName, funcName, retType, paramTypes, paramNames);
+    // Get func signature
+    FunctionType* funcType = FunctionType::Create(retType, paramTypes);
 
+    // Create the actual function
+    funcDefinition = context.symbolTable->functions.Create(funcName, funcName, funcType, paramNames);
+
+    /*
     std::vector<llvm::Type*> paramIRTypes;
     funcDefinition->GetIRTypes(paramIRTypes);
 
     auto& manager = Spark::LLVMManager::Instance();
-    auto signature = manager.GetFuncSignature(retType->GetIR(), paramIRTypes);
-    llvm::Function* definitionIR = manager.DeclareFunction(funcName, signature);
+    llvm::Function* definitionIR = manager.DeclareFunction(funcName, funcType->GetFuncIR());
     funcDefinition->SetIR(definitionIR);
+    */
+    funcDefinition->SetIRDefault();
+    llvm::Function* definitionIR = funcDefinition->GetIR();
 
     // Create the function variables
     // TODO: this is all really unsafe...
@@ -150,7 +156,7 @@ void FunctionNode::Generate(CompileContext& context)
     if (finalBB->getTerminator() == nullptr)
     {
         LangType* voidtype = context.builtins->types.Get("void");
-        if (funcDefinition->ReturnType() == voidtype)
+        if (funcDefinition->GetFuncType()->ReturnType() == voidtype)
         {
             // Implicit "return;", insert it automatically
             builder.CreateRetVoid();

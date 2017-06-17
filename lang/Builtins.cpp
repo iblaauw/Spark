@@ -25,12 +25,13 @@ void DeclarePrint(SymbolTable& symbolTable, HiddenTable& hiddenTable)
 
     std::vector<LangType*> args { strType };
     std::vector<std::string> paramNames { "value" };
-    Function* langfunc = symbolTable.functions.Create("print", "print", voidType, args, paramNames);
+    FunctionType* funcType = FunctionType::Create(voidType, args);
+    Function* langfunc = symbolTable.functions.Create("print", "print", funcType, paramNames);
 
     auto& manager = Spark::LLVMManager::Instance();
     std::vector<llvm::Type*> argsIR;
     langfunc->GetIRTypes(argsIR);
-    auto funcSig = manager.GetFuncSignature(langfunc->ReturnType()->GetIR(), argsIR);
+    auto funcSig = manager.GetFuncSignature(funcType->ReturnType()->GetIR(), argsIR);
     llvm::Function* func = manager.DeclareFunction("print", funcSig, llvm::GlobalValue::LinkOnceODRLinkage);
     langfunc->SetIR(func);
 
@@ -49,7 +50,8 @@ void DeclarePrintc(SymbolTable& symbolTable)
 
     std::vector<LangType*> args { intType };
     std::vector<std::string> paramNames { "value" };
-    Function* langfunc = symbolTable.functions.Create("printc", "putchar", intType, args, paramNames);
+    FunctionType* funcType = FunctionType::Create(intType, args);
+    Function* langfunc = symbolTable.functions.Create("printc", "putchar", funcType, paramNames);
 
     langfunc->SetIRDefault();
 }
@@ -59,19 +61,12 @@ void DeclareMalloc(SymbolTable& symbolTable)
     LangType* strType = symbolTable.types.Get("string");
     LangType* intType = symbolTable.types.Get("int");
 
-    llvm::Type* i8type = Spark::TypeConverter::Get<char>();
-    llvm::Type* i8ptr = i8type->getPointerTo();
-
-    auto& manager = Spark::LLVMManager::Instance();
     std::vector<LangType*> args { intType };
     std::vector<std::string> paramNames { "size" };
-    Function* func = symbolTable.functions.Create("malloc", "malloc", strType, args, paramNames);
+    FunctionType* funcType = FunctionType::Create(strType, args);
+    Function* func = symbolTable.functions.Create("malloc", "malloc", funcType, paramNames);
 
-    std::vector<llvm::Type*> argsIR;
-    func->GetIRTypes(argsIR);
-    auto sig = manager.GetFuncSignature(i8ptr, argsIR);
-    llvm::Function* funcIR = manager.DeclareFunction(func->GetName(), sig);
-    func->SetIR(funcIR);
+    func->SetIRDefault();
 }
 
 template <class T>

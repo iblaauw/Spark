@@ -76,14 +76,14 @@ UnknownPtr<RValue> FuncCallNode::Evaluate(CompileContext& context)
 
     llvm::Value* value = context.builder.CreateCall(funcDef, args);
 
-    LangType* retType = func->ReturnType();
+    LangType* retType = func->GetFuncType()->ReturnType();
     auto ptrVal = std::make_shared<GeneralRValue>(value, retType);
     return PtrCast<RValue>(ptrVal);
 }
 
 bool FuncCallNode::IsCompatible(const std::vector<UnknownPtr<RValue>>& args, Function* func)
 {
-    const auto& paramTypes = func->ParameterTypes();
+    const auto& paramTypes = func->GetFuncType()->ParameterTypes();
     if (args.size() != paramTypes.size())
     {
         Error("wrong number of arguments to call function '", func->GetName(), "'\n",
