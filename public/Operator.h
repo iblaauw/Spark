@@ -32,6 +32,15 @@ private:
     bool IsCompatible(FunctionType* funcType, std::vector<RValuePtr>& args);
 };
 
+class GetMemberOperator : public UnaryOperatorImpl
+{
+private:
+    std::string name;
+public:
+    GetMemberOperator(std::string name);
+    RValuePtr Create(RValuePtr rhs, CompileContext& context) override;
+};
+
 void AddIntOperators(LangType* intType);
 void AddBoolOperators(LangType* boolType);
 

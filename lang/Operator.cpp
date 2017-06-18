@@ -4,6 +4,7 @@
 
 #include "Errors.h"
 #include "CompileContext.h"
+#include "MemberValue.h"
 
 //// ArrayIndexOperator ////
 
@@ -137,6 +138,34 @@ bool FuncCallOperator::IsCompatible(FunctionType* funcType, std::vector<RValuePt
     }
 
     return true;
+}
+
+//// GetMemberOperator ////
+
+GetMemberOperator::GetMemberOperator(std::string name) : name(name) {}
+
+RValuePtr GetMemberOperator::Create(RValuePtr lhs, CompileContext& context)
+{
+    LangType* type = lhs->GetType();
+    auto& namedMembers = type->members.named;
+    auto it = namedMembers.find(this->name);
+    if (it == namedMembers.end())
+    {
+        Error("No member '", this->name, "' exists for type '", type->GetName(), "'");
+        return nullptr;
+    }
+
+    MemberValue* member = it->second;
+
+    if (!lhs->IsLValue())
+    {
+        Error("Can only use the '.' operator on a named variable or other proper l-value");
+        return nullptr;
+    }
+
+    auto lval = lhs.Cast<LValue>();
+
+    return member->GetMember(lval, context);
 }
 
 //// BasicBinaryOperator ////
