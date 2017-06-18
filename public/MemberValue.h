@@ -10,7 +10,7 @@ class MemberValue
 public:
     virtual std::string GetName() const = 0;
     virtual LangType* GetType() const = 0;
-    virtual UnknownPtr<RValue> GetMember(UnknownPtr<LValue> thisPtr, CompileContext& context) = 0;
+    virtual UnknownPtr<RValue> GetMember(UnknownPtr<RValue> thisPtr, CompileContext& context) = 0;
 };
 
 class DataMemberValue : public MemberValue
@@ -23,6 +23,6 @@ public:
     DataMemberValue(std::string name, unsigned int memberindex, LangType* memberType);
     std::string GetName() const override { return name; }
     LangType* GetType() const override { return type; }
-    UnknownPtr<RValue> GetMember(UnknownPtr<LValue> thisPtr, CompileContext& context) override;
+    UnknownPtr<RValue> GetMember(UnknownPtr<RValue> thisPtr, CompileContext& context) override;
 };
 

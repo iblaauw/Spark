@@ -4,6 +4,7 @@
 #include "Function.h"
 #include "TypeConverter.h"
 #include "Operator.h"
+#include "MemberValue.h"
 
 using HiddenTable = std::map<std::string, llvm::Function*>;
 
@@ -78,7 +79,7 @@ LangType* _CreateType(std::string name)
     return lt;
 }
 
-LangType* _CreateStringType()
+LangType* _CreateStringType(LangType* intLangType)
 {
     BasicType* lt = new BasicType("string");
 
@@ -90,6 +91,8 @@ LangType* _CreateStringType()
     llvm::Type* strType = llvm::StructType::create(types, "string_t");
 
     lt->SetIR(strType);
+
+    lt->members.named["size"] = new DataMemberValue("size", 0, intLangType);
 
     return lt;
 }
@@ -113,7 +116,7 @@ void AddBuiltinTypes(SymbolTable& symbolTable)
     symbolTable.types.Add(type->GetName(), type);
     AddBoolOperators(type);
 
-    type = _CreateStringType();
+    type = _CreateStringType(LangType::builtinInt);
     symbolTable.types.Add(type->GetName(), type);
 
 }

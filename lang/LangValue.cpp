@@ -8,9 +8,9 @@
 GeneralRValue::GeneralRValue(llvm::Value* value, LangType* type)
     : value(value), type(type)
 {
-    if (value->getType() != type->GetIR())
+    if (value->getType() != type->GetIR() && !type->IsFunction())
     {
-        std::cerr << "Warning: mismatched type on GeneralRValue" << std::endl;
+        std::cerr << "Warning: mismatched type on GeneralRValue (expected " << type->GetName() << ")" << std::endl;
     }
 }
 

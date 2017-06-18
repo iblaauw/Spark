@@ -157,15 +157,7 @@ RValuePtr GetMemberOperator::Create(RValuePtr lhs, CompileContext& context)
 
     MemberValue* member = it->second;
 
-    if (!lhs->IsLValue())
-    {
-        Error("Can only use the '.' operator on a named variable or other proper l-value");
-        return nullptr;
-    }
-
-    auto lval = lhs.Cast<LValue>();
-
-    return member->GetMember(lval, context);
+    return member->GetMember(lhs, context);
 }
 
 //// BasicBinaryOperator ////
