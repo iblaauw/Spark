@@ -6,6 +6,12 @@
 
 class LangType;
 
+class MemberValue;
+/*{
+public:
+    UnknownPtr<LValue> GetMember(UnknownPtr<LValue> thisPtr, CompileContext& context);
+};*/
+
 class MemberTable
 {
 public:
@@ -13,6 +19,8 @@ public:
     std::map<std::string, std::map<LangType*, BinaryOperatorImpl*>> binaryOperators;
     SpecialOperatorImpl* indexOperator;
     SpecialOperatorImpl* callOperator;
+
+    std::map<std::string, MemberValue*> named;
 };
 
 

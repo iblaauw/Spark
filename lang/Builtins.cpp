@@ -104,6 +104,7 @@ void AddBuiltinTypes(SymbolTable& symbolTable)
     type = _CreateType<int>("int");
     symbolTable.types.Add(type->GetName(), type);
     AddIntOperators(type);
+    LangType::builtinInt = type;
 
     type = _CreateType<char>("char");
     symbolTable.types.Add(type->GetName(), type);

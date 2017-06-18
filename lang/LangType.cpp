@@ -5,6 +5,10 @@
 #include "TypeConverter.h"
 #include "CompileContext.h"
 #include "Operator.h"
+#include "MemberValue.h"
+
+/*static*/ LangType* LangType::builtinInt;
+
 
 BasicType::BasicType(std::string name) : name(name) {}
 
@@ -51,6 +55,7 @@ ArrayType::ArrayType(llvm::Type* irType, LangType* subType, int size)
     : type(irType), subType(subType), size(size)
 {
     members.indexOperator = &(ArrayIndexOperator::Instance());
+    members.named["size"] = new DataMemberValue("size", 0, builtinInt);
 }
 
 llvm::Type* ArrayType::GetIR() const

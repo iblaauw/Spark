@@ -15,21 +15,6 @@ public:
     UnknownPtr<RValue> Create(UnknownPtr<RValue> lhs, CompileContext& context) override;
 };
 
-/*
-class FuncCallNode : public CustomNode
-{
-public:
-    FuncCallNode(std::vector<NodePtr>& nodes) : CustomNode(nodes) {}
-    std::string GetType() const override { return "FuncCallNode"; }
-    void Process() override;
-
-    UnknownPtr<RValue> Evaluate(CompileContext& context) override;
-
-private:
-    bool IsCompatible(const std::vector<UnknownPtr<RValue>>& args, Function* func);
-};
-*/
-
 class FuncCallArgsListNode : public AbsorbingNode
 {
 public:

@@ -37,6 +37,7 @@ public:
     LangType* GetPointerTo() { return cache.GetPointer(); }
     LangType* GetArrayOf(int size) { return cache.GetArray(size); }
 
+    static LangType* builtinInt; // TODO: this is really hacky
     // TODO: add inheritance and const-ness
 };
 
